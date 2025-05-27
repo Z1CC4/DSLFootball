@@ -20,6 +20,7 @@ Team "Inter" {
     Formation 3-5-2;
     Coach = Inzaghi;
     Captain = Handanovic;
+    ViceCaptain = Barella;
     Strategy = CounterAttack;
     Player Handanovic position GK;
     Player Bastoni position CB;
@@ -47,37 +48,43 @@ Match "Day 1 First Match" {
 }
 
 Parsiamo un linguaggio sul calcio
-COntrolliamo corretta sintattica e sintassi del codice
-COntrolliamo che la formazione coinicidi con i ruoli (es non piu di un portiere per team, se un 4-3-3 che abbiamo 4 difensori dichiarati 3 centrocampisti e 3 attacanti)
+Controlliamo corretta sintattica e sintassi del codice
+Controlliamo che la formazione coinicidi con i ruoli (es non piu di un portiere per team, se un 4-3-3 che abbiamo 4 difensori dichiarati 3 centrocampisti e 3 attacanti)
 Controllliamo che i match siano tra squadre dichiarate, che i gol segnati siano da giocatiori esistenti nelle squadre.
 Variabili con nomi di giocatori es captain del Piero e controlliamo che i tipi siano corretti (captain non puo essere un numero) e anche che ogni giocatore e dichiarato una sola volta
 Funzioni come setCaptain o callCaptain, changeFormation, add strategyPressing.
 
-CONsigli prof:
+Consigli prof:
 
 mettere dentro dei vincoli (control flow checking), creare simbol table con variabili, 
 simbol table deve essere dinamica gestirl acon c tramite linked list e allocazione dinamica
 
 Per output produciamo le informazioni della squadra in un formato simile json del tipo:
+
+
 {
   "teams": [
     {
-      "name": "Juventus",
-      "formation": [4, 3, 3],
-      "players": [
+     "name": "Juventus",
+     "formation": [4, 3, 3],
+     "coach": "Allegri",
+     "captain": "Buffon",
+     "vicecaptain: "Chiellini",
+     "strategy": "HighPress",
+     "players": [
         { "name": "Buffon", "position": "GK" },
       ],
-      "captain": "Buffon",
-      "strategy": "HighPress"
     },
     {
       "name": "Inter",
       "formation": [3, 5, 2],
+      "coach": "Inzaghi"      
+      "captain": "Handanovic",
+      "vicecaptain": "Barella,
+      "strategy": "CounterAttack",
       "players": [
         { "name": "Handanovic", "position": "GK" },
       ],
-      "captain": "Handanovic",
-      "strategy": "CounterAttack"
     }
   ],
   "matches": [
