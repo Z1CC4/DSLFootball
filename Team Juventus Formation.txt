@@ -1,0 +1,85 @@
+Team "Juventus" {
+    Formation 4-3-3;
+    Player Buffon position GK;
+    Player Chiellini position CB;
+    Player Danilo position RB;
+    Player Sandro position LB;
+    Player Locatelli position CM;
+    Player Pogba position CM;
+    Player Fagioli position CM;
+    Player Chiesa position RW;
+    Player Vlahovic position ST;
+    Player Kostic position LW;
+    Captain = Buffon;
+    Strategy = "HighPress";
+}
+
+Team "Inter" {
+    Formation 3-5-2;
+    Player Handanovic position GK;
+    Player Bastoni position CB;
+    Player De Vrij position CB;
+    Player Skriniar position CB;
+    Player Barella position CM;
+    Player Calhanoglu position CM;
+    Player Brozovic position CM;
+    Player Dumfries position RWB;
+    Player Dimarco position LWB;
+    Player Martinez position ST;
+    Player Lukaku position ST;
+    Captain = Handanovic;
+    Strategy = "CounterAttack";
+}
+
+Match "Day 1 Fist Match" {
+    HomeTeam = "Juventus";
+    AwayTeam = "Inter";
+    Date = "2023-11-06";
+    Result = 1-1;
+    Scorers = [Vlahovic, Lukaku];
+}
+Parsiamo un linguaggio sul calcio
+COntrolliamo corretta sintattica e sintassi del codice
+COntrolliamo che la formazione coinicidi con i ruoli (es non piu di un portiere per team, se un 4-3-3 che abbiamo 4 difensori dichiarati 3 centrocampisti e 3 attacanti)
+Controllliamo che i match siano tra squadre dichiarate, che i gol segnati siano da giocatiori esistenti nelle squadre.
+Variabili con nomi di giocatori es captain del Piero e controlliamo che i tipi siano corretti (captain non puo essere un numero) e anche che ogni giocatore e dichiarato una sola volta
+Funzioni come setCaptain o callCaptain, changeFormation, add strategyPressing.
+
+CONsigli prof:
+
+mettere dentro dei vincoli (control flow checking), creare simbol table con variabili, 
+simbol table deve essere dinamica gestirl acon c tramite linked list e allocazione dinamica
+
+Per output produciamo le informazioni della squadra in un formato simile json del tipo:
+{
+  "teams": [
+    {
+      "name": "Juventus",
+      "formation": [4, 3, 3],
+      "players": [
+        { "name": "Buffon", "position": "GK" },
+      ],
+      "captain": "Buffon",
+      "strategy": "HighPress"
+    },
+    {
+      "name": "Inter",
+      "formation": [3, 5, 2],
+      "players": [
+        { "name": "Handanovic", "position": "GK" },
+      ],
+      "captain": "Handanovic",
+      "strategy": "CounterAttack"
+    }
+  ],
+  "matches": [
+    {
+      "name": "Day 1 Fist Match",
+      "homeTeam": "Juventus",
+      "awayTeam": "Inter",
+      "date": "2023-11-06",
+      "result": "1-1",
+      "scorers": ["Vlahovic", "Lukaku"],
+    }
+  ]
+}
