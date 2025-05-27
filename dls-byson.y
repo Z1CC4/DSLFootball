@@ -33,13 +33,22 @@ match_declaration: MATCH STRING LBRACE match_body RBRACE;
 team_body: team_attribute team_body | team_attribute;
 match_body: match_attribute match_body | match_attribute;
 team_attribute: FORMATION formation_attribute SEMICOLON| 
-				COACH EQUAL VAR SEMICOLON|
-				CAPTAIN EQUAL VAR SEMICOLON|
-				//fare anche poi vice cap strategi e giocatori;
-				;
-match_attribute: //mettere come team attribute
-				;
+		COACH EQUAL VAR SEMICOLON|
+		CAPTAIN EQUAL VAR SEMICOLON|
+		VICECAPTAIN EQUAL VAR SEMICOLON|
+		STRATEGY EQUAL VAR SEMICOLON|
+		PLAYER VAR POSITION POSITIONVAL SEMICOLON;
+match_attribute: HOMETEAM EQUAL STRING SEMICOLON |
+		 AWAYTEAM EQUAL STRING SEMICOLON|
+		 DATE EQUAL DATESTR SEMICOLON|
+		 RESULT EQUAL NUMBER HYPHEN NUMBER SEMICOLON|
+		 SCORERS EQUAL LSQUARE scorer_list RSQUARE SEMICOLON;
 formation_attribute: FORMATION NUMBER HYPHEN NUMBER HYPHEN NUMBER SEMICOLON;
+scorer_list: scorer_list COMMA VAR|VAR|
+%%
 
-
+int main() {
+    yyparse();
+    return 0;
+}
 
