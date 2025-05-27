@@ -15,7 +15,7 @@ int yylex(void);
        char* lexeme;			//identifier
        double value;			//value of an identifier of type NUM
        }
-%token TEAM FORMATION PLAYER POSITION CAPTAIN TEAM FORMATION PLAYER POSITION CAPTAIN
+%token TEAM FORMATION PLAYER POSITION CAPTAIN
 %token MATCH DATE RESULT SCORERS HOMETEAM AWAYTEAM
 %token LBRACE RBRACE EQUAL HYPHEN SEMICOLON COMMA LSQUARE RSQUARE
 %token <str> STRING
