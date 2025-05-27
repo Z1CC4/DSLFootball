@@ -1,5 +1,9 @@
 Team "Juventus" {
     Formation 4-3-3;
+    Coach = Allegri;
+    Captain = Buffon;
+    ViceCaptain = Chiellini;
+    Strategy = HighPress;
     Player Buffon position GK;
     Player Chiellini position CB;
     Player Danilo position RB;
@@ -10,34 +14,38 @@ Team "Juventus" {
     Player Chiesa position RW;
     Player Vlahovic position ST;
     Player Kostic position LW;
-    Captain = Buffon;
-    Strategy = "HighPress";
 }
 
 Team "Inter" {
     Formation 3-5-2;
+    Coach = Inzaghi;
+    Captain = Handanovic;
+    Strategy = CounterAttack;
     Player Handanovic position GK;
     Player Bastoni position CB;
-    Player De Vrij position CB;
+    Player DeVrij position CB;
     Player Skriniar position CB;
     Player Barella position CM;
     Player Calhanoglu position CM;
     Player Brozovic position CM;
-    Player Dumfries position RWB;
-    Player Dimarco position LWB;
+    Player Dumfries position RB;
+    Player Dimarco position LB;
     Player Martinez position ST;
     Player Lukaku position ST;
-    Captain = Handanovic;
-    Strategy = "CounterAttack";
 }
 
-Match "Day 1 Fist Match" {
+Match "Day 1 First Match" {
+    Stadium = "Allianz Stadium";
     HomeTeam = "Juventus";
     AwayTeam = "Inter";
     Date = "2023-11-06";
+    Time = "18:00";
+    Weather = "Sunny";
     Result = 1-1;
     Scorers = [Vlahovic, Lukaku];
+    Referee = "Rocchi";
 }
+
 Parsiamo un linguaggio sul calcio
 COntrolliamo corretta sintattica e sintassi del codice
 COntrolliamo che la formazione coinicidi con i ruoli (es non piu di un portiere per team, se un 4-3-3 che abbiamo 4 difensori dichiarati 3 centrocampisti e 3 attacanti)
@@ -83,3 +91,4 @@ Per output produciamo le informazioni della squadra in un formato simile json de
     }
   ]
 }
+//Modifico il file .l con i token e file .y (solo i token modifico)
