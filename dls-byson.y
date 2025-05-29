@@ -12,16 +12,13 @@ void yyerror(const char *s)
 int yylex(void);
 %}
 %union {
-       char* lexeme;			//identifier
+       char* str;			//identifier
        double value;			//value of an identifier of type NUM
        }
 %token TEAM FORMATION PLAYER POSITION CAPTAIN
 %token MATCH DATE RESULT SCORERS HOMETEAM AWAYTEAM
 %token LBRACE RBRACE EQUAL HYPHEN SEMICOLON COMMA LSQUARE RSQUARE
-%token <str> STRING
-%token <str> VAR
-%token <str> DATESTR
-%token <str> POSITIONVAL
+%token <str> STRING VAR DATESTR POSITIONVAL
 %token <num> NUMBER
 %%
 
@@ -42,13 +39,12 @@ match_attribute: HOMETEAM EQUAL STRING SEMICOLON |
 		 AWAYTEAM EQUAL STRING SEMICOLON|
 		 DATE EQUAL DATESTR SEMICOLON|
 		 RESULT EQUAL NUMBER HYPHEN NUMBER SEMICOLON|
-		 SCORERS EQUAL LSQUARE scorer_list RSQUARE SEMICOLON;
+		 SCORERS EQUAL LSQUARE scorer_list RSQUARE;
 formation_attribute: FORMATION NUMBER HYPHEN NUMBER HYPHEN NUMBER SEMICOLON;
-scorer_list: scorer_list COMMA VAR|VAR|
+scorer_list: scorer_list COMMA VAR|VAR| /* empty */
 %%
 
 int main() {
     yyparse();
     return 0;
 }
-
