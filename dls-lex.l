@@ -14,18 +14,24 @@ id     {letter}({letter}|{digit})*
 
 [ \t\n] {}
 
-"Team"       return TEAM; 
+"Team"       return TEAM;
+"Coach"      return COACH;
 "Formation"  return FORMATION; 
 "Player"     return PLAYER; 
 "Position"   return POSITION;
 "Captain"    return CAPTAIN; 
+"Vicecaptain" return VICECAPTAIN;
 "Strategy"   return STRATEGY; 
 "Match"      return MATCH; 
-"Date" 	     return DATE; 
+"Date" 	     return DATE;
+"Time"	     return TIME;
 "Result"     return RESULT; 
 "Scorers"    return SCORERS; 
 "HomeTeam"   return HOMETEAM; 
 "AwayTeam"   return AWAYTEAM; 
+"Stadium"    return STADIUM;
+"Weather"    return WEATHER;
+"Referee"    return REFEREE;
 
 	//symbol 
 
