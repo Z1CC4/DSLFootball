@@ -52,12 +52,16 @@ match_body:
   | match_attribute;
 
 team_attribute:
-    FORMATION formation_attribute SEMICOLON
+    FORMATION formation_attribute SEMICOLON {
+      set_formation(current_team_name, $1, $3, $5);
+   }
   | COACH EQUAL VAR SEMICOLON {
         set_coach($3);
     }
   | CAPTAIN EQUAL VAR SEMICOLON {
-        set_captain($3);
+      if (!is_player_in_team(current_team_name, $3))
+          yyerror("Captain must be a declared player");
+      set_captain($3);
     }
   | VICECAPTAIN EQUAL VAR SEMICOLON {
         set_vicecaptain($3);
@@ -66,7 +70,7 @@ team_attribute:
         set_strategy($3);
     }
   | PLAYER VAR POSITION POSITIONVAL SEMICOLON {
-        add_player($2, $4);
+      add_player_to_team(current_team_name, $2, $4);
     };
 
 match_attribute:
