@@ -1,0 +1,53 @@
+#ifndef PROGETTO_H
+#define PROGETTO_H
+
+#define MAX_PLAYERS 11
+#define MAX_SCORERS 10
+
+typedef struct SymbolNode {
+    char* name;
+    char* type;
+    struct SymbolNode* next;
+} SymbolNode;
+
+typedef struct SymbolTable {
+    SymbolNode* head;
+} SymbolTable;
+
+typedef struct{
+	char* name;
+	char* position;
+} Player;
+
+typedef struct{
+	int attack;
+	int midfield;
+	int defence;
+} Formation;
+
+
+typedef struct{
+	char* name;
+	struct Player players[MAX_PLAYERS];
+	struct Formation formation;
+    	char* captain;
+	char* coach;
+	char* viceCaptain;
+	char* goalkeeper;
+	char* formationMod;
+	char* strategy;
+} Team;
+
+typedef struct{
+	char* stadium;
+	char* homeTeam;
+	char* awayTeam;
+	char* date;
+	char* time;
+	char* weather;
+	char* result;
+	char* referee;
+	char* scorers[MAX_SCORERS];
+} Match;
+
+#endif

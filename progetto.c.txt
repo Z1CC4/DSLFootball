@@ -1,0 +1,105 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "progetto.h"
+
+int yyparse(void);   
+       
+void initialize_symbol_table(SymbolTable* table) {
+	table->head = NULL;
+}
+
+void add_symbol(SymbolTable* table, char* name, char* type){
+	SymbolNode* newNode = malloc(sizeof(SymbolNode));  //allocates memory for newNode
+	if(!newNode){
+		fprintf(stderr, "There is no free memory.\n");
+		exit(1);
+	}
+	newNode->name = strdup(name); //with strdup, we allocate memory for that variable. In this way we can manage to directly modify its value independently.
+	newNode->type = strdup(type); //same here. Instead, if we have done newNode->name=name, that would only copy the pointer. So, if the value changes, then it changes for everybody
+	newNode->next = table->head;
+	table->head = newNode;
+}
+
+SymbolNode* lookup_symbol(SymbolTable* table, char* name, char* type){
+	SymbolNode* current = table->head;
+	while(current){
+		if(strcmp(current->name, name)==0 && strcmp(current->type, type)==0){ 
+			return current;
+		}
+		current=current->next;
+	}
+	return NULL;
+}
+
+int delete_symbol(SymbolTable* table, char* name, char* type){
+	if(table->head==NULL){
+		printf("The table is empty.\n");
+		return 0;
+	}
+	SymbolNode* current = table->head;
+	SymbolNode* previous = NULL;
+	
+	if(strcmp(table->head->name, name)==0 && strcmp(table->head->type, type)==0){
+        	table->head = current->next;  
+        	free(current->name);
+        	free(current->type);
+        	free(current);
+		printf("Successful deletion!\n");
+		return 1;
+	}
+
+	current = table->head->next; //since the head has been checked, in this point we know that it is not what we are searching for, so we increase the pointers;
+	previous = table->head;
+
+	while(current){
+		if(strcmp(current->name, name)==0 && strcmp(current->type, type)==0){
+			previous->next=current->next;
+			free(current->name);
+        		free(current->type);
+        		free(current);
+			printf("Successful deletion!\n");
+			return 1;
+		}
+		previous=current;
+		current=current->next;
+	}
+	printf("Symbol not found!\n");
+	return 0;
+
+}
+
+void print_symbol_table(SymbolTable* table) {
+    SymbolNode* current = table->head;
+    printf("Symbol Table:\n");
+    while(current) {
+        printf("  Name: %s, Type: %s\n", current->name, current->type);
+        current = current->next;
+    }
+}
+
+void free_symbol_table(SymbolTable* table) {
+    SymbolNode* current = table->head;
+    while (current) {
+        SymbolNode* next = current->next;
+        free(current->name);
+        free(current->type);
+        free(current);
+        current = next;
+    }
+    table->head = NULL;
+}
+
+
+
+
+
+
+
+
+int main(){
+	
+
+
+}
+
