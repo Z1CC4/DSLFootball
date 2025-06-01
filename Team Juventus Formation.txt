@@ -90,11 +90,15 @@ Per output produciamo le informazioni della squadra in un formato simile json de
   "matches": [
     {
       "name": "Day 1 Fist Match",
+      "stadium": "Allianz Stadium"
       "homeTeam": "Juventus",
       "awayTeam": "Inter",
       "date": "2023-11-06",
+      "time": "18:00",
+      "weather": "Sunny",
       "result": "1-1",
       "scorers": ["Vlahovic", "Lukaku"],
+      "referee": "Rocchi",
     }
   ]
 }
