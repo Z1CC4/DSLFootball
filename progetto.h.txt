@@ -50,4 +50,50 @@ typedef struct{
 	char* scorers[MAX_SCORERS];
 } Match;
 
+typedef enum {
+    TEAM_OK = 0,
+    TEAM_TOO_MANY_PLAYERS,
+    TEAM_TOO_FEW_PLAYERS,
+    TEAM_MULTIPLE_GOALKEEPERS,
+    TEAM_NO_GOALKEEPER,
+    TEAM_ROLES_MISMATCH,
+    TEAM_DUPLICATE_PLAYER,
+    TEAM_INVALID_FORMATION,
+    TEAM_INVALID_CAPTAIN,
+    TEAM_INVALID_VICECAPTAIN,
+    TEAM_INVALID_COACH,
+    TEAM_INVALID_STRATEGY,
+    TEAM_EMPTY_NAME,
+    TEAM_PLAYER_EMPTY_NAME,
+    TEAM_INVALID_POSITION
+} TeamValidationError;
+
+typedef enum {
+    MATCH_OK = 0,
+    MATCH_UNKNOWN_TEAM,
+    MATCH_SAME_TEAM,
+    MATCH_UNKNOWN_SCORER,
+    MATCH_WRONG_SCORE_COUNT,
+    MATCH_INVALID_DATE,
+    MATCH_INVALID_RESULT,
+    MATCH_NAME_NOT_UNIQUE
+} MatchValidationError;
+
+//team check
+TeamValidationError validate_team(Team *team, char *error_detail, SymbolTable *table);
+int is_non_empty_name(const char* name);
+int is_team_name_unique(const char* name, SymbolTable* table);
+int is_valid_position(const char* pos);
+int is_player_in_team(Team* team, const char* player_name);
+int is_string(const char* val);
+int is_valid_formation(const Formation* f);
+int has_no_empty_players(Team* team);
+//match check
+MatchValidationError validate_match(Match *match, SymbolTable *table, char *error_detail);
+int is_valid_date(const char* date);
+int is_valid_result(const char* result);
+int is_match_name_unique(const char* name, SymbolTable* table);
+//general
+Team* get_team_by_name(const char* name);
+Player* get_player_by_name(Team* team, const char* player_name);
 #endif
