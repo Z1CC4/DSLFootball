@@ -142,4 +142,20 @@ void end_scorer_list(SymbolTable* table, const char* match_name);
 TeamValidationError validate_team(Team* team, char* error_detail);
 MatchValidationError validate_match(Match* match, SymbolTable* table, char* error_detail);
 
+int hasPlayer(Team* team, const char* name);
+int hasCaptain(Team* team, const char* name);
+int hasFormation(Team* team, Formation formation);
+int hasCoach(Team* team, const char* coachName);
+int hasViceCaptain(Team* team, const char* viceCaptainName);
+int hasStrategy(Team* team, const char* strategy);
+
+// --- MATCH QUERIES ---
+int hasStadium(Match* match, const char* name);
+int hasDate(Match* match, const char* date);
+int hasTime(Match* match, const char* time);
+int hasWeather(Match* match, const char* weather);
+int hasResult(Match* match, const char* result);
+int hasReferee(Match* match, const char* referee);
+int hasScorer(Match* match, const char* scorer);
+
 #endif // PROGETTO_H
