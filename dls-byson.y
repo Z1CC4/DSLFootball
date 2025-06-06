@@ -26,16 +26,28 @@ const char* current_match_name = NULL;
 %token <str> STRING DATESTR
 %token <num> NUMBER
 
+%token SETCAPTAIN SETCOACH SETVICECAPTAIN SETSTRATEGY SETFORMATION
+%token SETSTADIUM SETHOMETEAM SETAWAYTEAM SETMATCHDATE SETMATCHTIME SETWEATHER SETREFEREE SETRESULT
+
+%token HASPLAYER HASCAPTAIN HASFORMATION HASCOACH HASVICECAPTAIN HASSTRATEGY
+%token HASSTADIUM HASDATE HASTIME HASWEATHER HASRESULT HASREFEREE HASSCORER
+%token LPAREN RPAREN
+
 %%
 
 program : blocks;
 
-blocks : block blocks
-       | block
-       | error { yyerror("Errore di sintassi generico."); YYABORT; };
+blocks :
+      block blocks
+    | block
+    | error { yyerror("Errore di sintassi generico."); YYABORT; }
+    ;
 
-block : team_declaration
-      | match_declaration;
+block :
+      team_declaration
+    | match_declaration
+    | operation_declaration
+    ;
 
 team_declaration:
     TEAM STRING LBRACE {
@@ -54,7 +66,8 @@ team_declaration:
             case TEAM_OK: break;
             default: yyerror(error_detail); YYABORT;
         }
-    };
+    }
+    ;
 
 match_declaration:
     MATCH STRING LBRACE {
@@ -73,12 +86,13 @@ match_declaration:
             case MATCH_OK: break;
             default: yyerror(error_detail); YYABORT;
         }
-    };
+    }
+    ;
 
 team_body:
-    team_attribute team_body
-  | team_attribute
-  ;
+      team_attribute team_body
+    | team_attribute
+    ;
 
 team_attribute:
     FORMATION NUMBER HYPHEN NUMBER HYPHEN NUMBER SEMICOLON {
@@ -116,9 +130,9 @@ team_attribute:
   ;
 
 match_body:
-    match_attribute match_body
-  | match_attribute
-  ;
+      match_attribute match_body
+    | match_attribute
+    ;
 
 match_attribute:
     STADIUM EQUAL STRING SEMICOLON {
@@ -161,17 +175,202 @@ match_attribute:
   ;
 
 scorer_list:
-    scorer_list COMMA STRING {
+      scorer_list COMMA STRING {
         add_scorer(&symbol_table, current_match_name, $3);
     }
-  | STRING {
+    | STRING {
         start_scorer_list(&symbol_table, current_match_name);
         add_scorer(&symbol_table, current_match_name, $1);
     }
-  | /* empty */ {
+    | /* empty */ {
         start_scorer_list(&symbol_table, current_match_name);
     }
-  ;
+    ;
+
+// ----- OPERATIONS: SET & HAS -----
+
+operation_declaration :
+      set_captain_fun
+    | set_coach_fun
+    | set_vicecaptain_fun
+    | set_strategy_fun
+    | set_formation_fun
+
+    | set_stadium_fun
+    | set_hometeam_fun
+    | set_awayteam_fun
+    | set_matchdate_fun
+    | set_matchtime_fun
+    | set_weather_fun
+    | set_referee_fun
+    | set_result_fun
+
+    | has_player_fun
+    | has_captain_fun
+    | has_formation_fun
+    | has_coach_fun
+    | has_vicecaptain_fun
+    | has_strategy_fun
+
+    | has_stadium_fun
+    | has_date_fun
+    | has_time_fun
+    | has_weather_fun
+    | has_result_fun
+    | has_referee_fun
+    | has_scorer_fun
+    ;
+
+set_captain_fun : SETCAPTAIN LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    set_captain(&symbol_table, $3, $5);
+    printf("setCaptain(%s, %s)\n", $3, $5);
+    free($3); free($5);
+};
+set_coach_fun : SETCOACH LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    set_coach(&symbol_table, $3, $5);
+    printf("setCoach(%s, %s)\n", $3, $5);
+    free($3); free($5);
+};
+set_vicecaptain_fun : SETVICECAPTAIN LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    set_vicecaptain(&symbol_table, $3, $5);
+    printf("setViceCaptain(%s, %s)\n", $3, $5);
+    free($3); free($5);
+};
+set_strategy_fun : SETSTRATEGY LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    set_strategy(&symbol_table, $3, $5);
+    printf("setStrategy(%s, %s)\n", $3, $5);
+    free($3); free($5);
+};
+set_formation_fun : SETFORMATION LPAREN STRING COMMA NUMBER COMMA NUMBER COMMA NUMBER RPAREN SEMICOLON {
+    set_formation(&symbol_table, $3, $5, $7, $9);
+    printf("setFormation(%s, %d, %d, %d)\n", $3, $5, $7, $9);
+    free($3);
+};
+
+set_stadium_fun : SETSTADIUM LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    set_stadium(&symbol_table, $3, $5);
+    printf("setStadium(%s, %s)\n", $3, $5);
+    free($3); free($5);
+};
+set_hometeam_fun : SETHOMETEAM LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    set_home_team(&symbol_table, $3, $5);
+    printf("setHomeTeam(%s, %s)\n", $3, $5);
+    free($3); free($5);
+};
+set_awayteam_fun : SETAWAYTEAM LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    set_away_team(&symbol_table, $3, $5);
+    printf("setAwayTeam(%s, %s)\n", $3, $5);
+    free($3); free($5);
+};
+set_matchdate_fun : SETMATCHDATE LPAREN STRING COMMA DATESTR RPAREN SEMICOLON {
+    set_match_date(&symbol_table, $3, $5);
+    printf("setMatchDate(%s, %s)\n", $3, $5);
+    free($3); free($5);
+};
+set_matchtime_fun : SETMATCHTIME LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    set_match_time(&symbol_table, $3, $5);
+    printf("setMatchTime(%s, %s)\n", $3, $5);
+    free($3); free($5);
+};
+set_weather_fun : SETWEATHER LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    set_weather(&symbol_table, $3, $5);
+    printf("setWeather(%s, %s)\n", $3, $5);
+    free($3); free($5);
+};
+set_referee_fun : SETREFEREE LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    set_referee(&symbol_table, $3, $5);
+    printf("setReferee(%s, %s)\n", $3, $5);
+    free($3); free($5);
+};
+set_result_fun : SETRESULT LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    set_result(&symbol_table, $3, $5);
+    printf("setResult(%s, %s)\n", $3, $5);
+    free($3); free($5);
+};
+
+// --- HAS FUNCTIONS ---
+has_player_fun : HASPLAYER LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    Team* t = get_team_by_name(&symbol_table, $3);
+    int found = hasPlayer(t, $5);
+    printf("hasPlayer(%s, %s) = %d\n", $3, $5, found);
+    free($3); free($5);
+};
+has_captain_fun : HASCAPTAIN LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    Team* t = get_team_by_name(&symbol_table, $3);
+    int found = hasCaptain(t, $5);
+    printf("hasCaptain(%s, %s) = %d\n", $3, $5, found);
+    free($3); free($5);
+};
+has_formation_fun : HASFORMATION LPAREN STRING COMMA NUMBER COMMA NUMBER COMMA NUMBER RPAREN SEMICOLON {
+    Team* t = get_team_by_name(&symbol_table, $3);
+    Formation f = {.defence=$5, .midfield=$7, .attack=$9};
+    int found = hasFormation(t, f);
+    printf("hasFormation(%s, %d-%d-%d) = %d\n", $3, $5, $7, $9, found);
+    free($3);
+};
+has_coach_fun : HASCOACH LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    Team* t = get_team_by_name(&symbol_table, $3);
+    int found = hasCoach(t, $5);
+    printf("hasCoach(%s, %s) = %d\n", $3, $5, found);
+    free($3); free($5);
+};
+has_vicecaptain_fun : HASVICECAPTAIN LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    Team* t = get_team_by_name(&symbol_table, $3);
+    int found = hasViceCaptain(t, $5);
+    printf("hasViceCaptain(%s, %s) = %d\n", $3, $5, found);
+    free($3); free($5);
+};
+has_strategy_fun : HASSTRATEGY LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    Team* t = get_team_by_name(&symbol_table, $3);
+    int found = hasStrategy(t, $5);
+    printf("hasStrategy(%s, %s) = %d\n", $3, $5, found);
+    free($3); free($5);
+};
+
+// --- HAS MATCH FUNCTIONS ---
+has_stadium_fun : HASSTADIUM LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    Match* m = get_match_by_name(&symbol_table, $3);
+    int found = hasStadium(m, $5);
+    printf("hasStadium(%s, %s) = %d\n", $3, $5, found);
+    free($3); free($5);
+};
+has_date_fun : HASDATE LPAREN STRING COMMA DATESTR RPAREN SEMICOLON {
+    Match* m = get_match_by_name(&symbol_table, $3);
+    int found = hasDate(m, $5);
+    printf("hasDate(%s, %s) = %d\n", $3, $5, found);
+    free($3); free($5);
+};
+has_time_fun : HASTIME LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    Match* m = get_match_by_name(&symbol_table, $3);
+    int found = hasTime(m, $5);
+    printf("hasTime(%s, %s) = %d\n", $3, $5, found);
+    free($3); free($5);
+};
+has_weather_fun : HASWEATHER LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    Match* m = get_match_by_name(&symbol_table, $3);
+    int found = hasWeather(m, $5);
+    printf("hasWeather(%s, %s) = %d\n", $3, $5, found);
+    free($3); free($5);
+};
+has_result_fun : HASRESULT LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    Match* m = get_match_by_name(&symbol_table, $3);
+    int found = hasResult(m, $5);
+    printf("hasResult(%s, %s) = %d\n", $3, $5, found);
+    free($3); free($5);
+};
+has_referee_fun : HASREFEREE LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    Match* m = get_match_by_name(&symbol_table, $3);
+    int found = hasReferee(m, $5);
+    printf("hasReferee(%s, %s) = %d\n", $3, $5, found);
+    free($3); free($5);
+};
+has_scorer_fun : HASSCORER LPAREN STRING COMMA STRING RPAREN SEMICOLON {
+    Match* m = get_match_by_name(&symbol_table, $3);
+    int found = hasScorer(m, $5);
+    printf("hasScorer(%s, %s) = %d\n", $3, $5, found);
+    free($3); free($5);
+};
+
 %%
 
 int main() {
