@@ -55,6 +55,7 @@ typedef struct SymbolTable {
     SymbolNode* head;
 } SymbolTable;
 
+// --- ENUM PER GLI ERRORI DI VALIDAZIONE ---
 typedef enum {
     TEAM_OK = 0,
     TEAM_TOO_MANY_PLAYERS,
@@ -85,23 +86,7 @@ typedef enum {
     MATCH_NAME_NOT_UNIQUE
 } MatchValidationError;
 
-typedef enum {
-    VALID = 0,
-    PLAYER_INVALID_NAME,
-    PLAYER_INVALID_ROLE,
-    COACH_INVALID_NAME,
-    REFEREE_INVALID_NAME,
-    TEAM_INVALID_NAME,
-    TEAM_INVALID_STRATEGY,
-    MATCH_INVALID_STADIUM,
-    MATCH_INVALID_HOME_TEAM,
-    MATCH_INVALID_AWAY_TEAM,
-    MATCH_INVALID_WEATHER,
-    SCORER_INVALID_NAME
-} ValidationResult;
-
-
-// Symbol Table management
+// --- SYMBOL TABLE MANAGEMENT ---
 void initialize_symbol_table(SymbolTable* table);
 void add_symbol(SymbolTable* table, char* name, char* type, void* val);
 SymbolNode* lookup_symbol(SymbolTable* table, char* name, char* type);
@@ -109,12 +94,11 @@ int delete_symbol(SymbolTable* table, char* name, char* type);
 void print_symbol_table(SymbolTable* table);
 void free_symbol_table(SymbolTable* table);
 
-// Getters
+// --- GETTERS ---
 Team* get_team_by_name(SymbolTable* table, const char* name);
 Match* get_match_by_name(SymbolTable* table, const char* name);
-Player* get_player_by_name(Team* team, const char* player_name);
 
-// Check functions
+// --- CHECK FUNCTIONS ---
 int is_non_empty_name(const char* name);
 int has_no_empty_players(Team* team);
 int is_team_name_unique(const char* name, SymbolTable* table);
@@ -125,12 +109,9 @@ int is_valid_position(const char* pos);
 int is_valid_date(const char* date);
 int is_valid_result(const char* result);
 int is_string(const char* val);
+int is_alpha_string(const char* str);
 
-// Team validation
-TeamValidationError validate_team(Team* team, char* error_detail);
-MatchValidationError validate_match(Match* match, SymbolTable* table, char* error_detail);
-
-// TEAM management
+// --- TEAM MANAGEMENT ---
 void start_team(SymbolTable* table, const char* name);
 void end_team(SymbolTable* table, const char* name);
 void set_coach(SymbolTable* table, const char* team_name, const char* coach);
@@ -140,7 +121,7 @@ void set_strategy(SymbolTable* table, const char* team_name, const char* strateg
 void add_player_to_team(SymbolTable* table, const char* team_name, const char* player, const char* position);
 void set_formation(SymbolTable* table, const char* team_name, int def, int mid, int att);
 
-// MATCH management
+// --- MATCH MANAGEMENT ---
 void start_match(SymbolTable* table, const char* name);
 void end_match(SymbolTable* table, const char* name);
 void set_stadium(SymbolTable* table, const char* match_name, const char* stadium);
@@ -152,18 +133,13 @@ void set_weather(SymbolTable* table, const char* match_name, const char* weather
 void set_referee(SymbolTable* table, const char* match_name, const char* referee);
 void set_result(SymbolTable* table, const char* match_name, const char* result);
 
-// SCORERS
+// --- SCORERS ---
 void start_scorer_list(SymbolTable* table, const char* match_name);
 void add_scorer(SymbolTable* table, const char* match_name, const char* scorer);
 void end_scorer_list(SymbolTable* table, const char* match_name);
 
-int is_alpha_string(const char *str);
-//VALIDATION
-ValidationResult validate_player(Player *player, char *error_detail);
-ValidationResult validate_coach(Coach *coach, char *error_detail);
-ValidationResult validate_referee(Referee *referee, char *error_detail);
-ValidationResult validate_team(Team *team, char *error_detail);
-ValidationResult validate_match(Match *match, char *error_detail);
-ValidationResult validate_scorer(Scorer *scorer, char *error_detail);
+// --- VALIDATION ---
+TeamValidationError validate_team(Team* team, char* error_detail);
+MatchValidationError validate_match(Match* match, SymbolTable* table, char* error_detail);
 
 #endif // PROGETTO_H
