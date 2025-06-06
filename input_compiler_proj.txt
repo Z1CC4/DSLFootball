@@ -1,0 +1,55 @@
+Team "Juventus" {
+    Player "Buffon" position "GK";
+    Player "Chiellini" position "CB";
+    Player "Danilo" position "RB";
+    Player "Sandro" position "LB";
+    Player "Gatti" position "CB";
+    Player "Locatelli" position "CM";
+    Player "Pogba" position "CM";
+    Player "Fagioli" position "CM";
+    Player "Chiesa" position "RW";
+    Player "Vlahovic" position "ST";
+    Player "Kostic" position "LW";
+    Formation 4-4-3;
+    Coach = "Allegri";
+    Captain = "Buffon";
+    Vicecaptain = "Chiellini";
+    Strategy = "HighPress";
+}
+
+
+
+Team "Inter" {
+    Player "Handanovic" position "GK";
+    Player "Bastoni" position "CB";
+    Player "DeVrij" position "CB";
+    Player "Skriniar" position "CB";
+    Player "Barella" position "CM";
+    Player "Calhanoglu" position "CM";
+    Player "Brozovic" position "CM";
+    Player "Mkhitaryan" position "RM";
+    Player "Dimarco" position "LM";
+    Player "Martinez" position "ST";
+    Player "Lukaku" position "ST";
+    Formation 3-5-2;
+    Coach = "Inzaghi";
+    Captain = "Handanovic";
+    Vicecaptain = "Barella";
+    Strategy = "CounterAttack";
+}
+
+
+
+Match "Day 1 First Match" {
+    Stadium = "Allianz Stadium";
+    HomeTeam = "Juventus";
+    AwayTeam = "Inter";
+	Date = 2023-11-06;
+    Time = "18:00";
+    Weather = "Sunny";
+    Result = 1-1;
+    Scorers = ["Vlahovic", "Lukaku"];
+    Referee = "Rocchi";
+}
+
+
