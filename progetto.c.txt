@@ -1,71 +1,81 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <ctype.h>
 #include "progetto.h"
-
-int yyparse(void);   
+int yyparse(void);
        
 void initialize_symbol_table(SymbolTable* table) {
-	table->head = NULL;
+    table->head = NULL;
 }
 
-void add_symbol(SymbolTable* table, char* name, char* type){
-	SymbolNode* newNode = malloc(sizeof(SymbolNode));  //allocates memory for newNode
-	if(!newNode){
-		fprintf(stderr, "There is no free memory.\n");
-		exit(1);
-	}
-	newNode->name = strdup(name); //with strdup, we allocate memory for that variable. In this way we can manage to directly modify its value independently.
-	newNode->type = strdup(type); //same here. Instead, if we have done newNode->name=name, that would only copy the pointer. So, if the value changes, then it changes for everybody
-	newNode->next = table->head;
-	table->head = newNode;
+void add_symbol(SymbolTable* table, char* name, char* type, void* val){
+    SymbolNode* newNode = malloc(sizeof(SymbolNode));  //allocates memory for newNode
+    if(!newNode){
+        fprintf(stderr, "There is no free memory.\n");
+        exit(1);
+    }
+    newNode->name = strdup(name);
+    newNode->type = strdup(type);
+    newNode->next = table->head;
+
+    // Assegna il puntatore in base al tipo
+    if(strcmp(type, "TEAM") == 0)
+        newNode->value.teamPtr = (Team*)val;
+    else if(strcmp(type, "MATCH") == 0)
+        newNode->value.matchPtr = (Match*)val;
+    else
+        newNode->value.ptr = val;  // fallback generico
+
+    table->head = newNode;
 }
 
 SymbolNode* lookup_symbol(SymbolTable* table, char* name, char* type){
-	SymbolNode* current = table->head;
-	while(current){
-		if(strcmp(current->name, name)==0 && strcmp(current->type, type)==0){ 
-			return current;
-		}
-		current=current->next;
-	}
-	return NULL;
+    SymbolNode* current = table->head;
+    while(current){
+        if(strcmp(current->name, name)==0 && strcmp(current->type, type)==0){ 
+            return current;
+        }
+        current=current->next;
+    }
+    return NULL;
 }
 
 int delete_symbol(SymbolTable* table, char* name, char* type){
-	if(table->head==NULL){
-		printf("The table is empty.\n");
-		return 0;
-	}
-	SymbolNode* current = table->head;
-	SymbolNode* previous = NULL;
-	
-	if(strcmp(table->head->name, name)==0 && strcmp(table->head->type, type)==0){
-        	table->head = current->next;  
-        	free(current->name);
-        	free(current->type);
-        	free(current);
-		printf("Successful deletion!\n");
-		return 1;
-	}
+    if(table->head==NULL){
+        printf("The table is empty.\n");
+        return 0;
+    }
+    SymbolNode* current = table->head;
+    SymbolNode* previous = NULL;
+    
+    if(strcmp(table->head->name, name)==0 && strcmp(table->head->type, type)==0){
+        table->head = current->next;  
+        free(current->name);
+        free(current->type);
+        free(current);
+        printf("Successful deletion!\n");
+        return 1;
+    }
 
-	current = table->head->next; //since the head has been checked, in this point we know that it is not what we are searching for, so we increase the pointers;
-	previous = table->head;
+    current = table->head->next; //since the head has been checked, in this point we know that it is not what we are searching for, so we increase the pointers;
+    previous = table->head;
 
-	while(current){
-		if(strcmp(current->name, name)==0 && strcmp(current->type, type)==0){
-			previous->next=current->next;
-			free(current->name);
-        		free(current->type);
-        		free(current);
-			printf("Successful deletion!\n");
-			return 1;
-		}
-		previous=current;
-		current=current->next;
-	}
-	printf("Symbol not found!\n");
-	return 0;
+    while(current){
+        if(strcmp(current->name, name)==0 && strcmp(current->type, type)==0){
+            previous->next=current->next;
+            free(current->name);
+            free(current->type);
+            free(current);
+            printf("Successful deletion!\n");
+            return 1;
+        }
+        previous=current;
+        current=current->next;
+    }
+    printf("Symbol not found!\n");
+    return 0;
 
 }
 
@@ -90,24 +100,17 @@ void free_symbol_table(SymbolTable* table) {
     table->head = NULL;
 }
 
-
-eam* get_team_by_name(const char* name) {
-    extern SymbolTable your_symbol_table; // da controllare per puntatore symbol table
-    SymbolNode* current = your_symbol_table.head;
-    while (current) {
-        if (strcmp(current->name, name) == 0 && strcmp(current->type, "TEAM") == 0) {
-            return current->team;
-        }
-        current = current->next;
-    }
+Team* get_team_by_name(SymbolTable* table, const char* name) {
+    SymbolNode* node = lookup_symbol(table, (char*)name, "TEAM");
+    if (node)
+        return node->value.teamPtr;
     return NULL;
 }
 
-Player* get_player_by_name(Team* team, const char* player_name) {
-    for (int i = 0; i < team->numPlayers; i++) {
-        if (strcmp(team->players[i].name, player_name) == 0)
-            return &team->players[i];
-    }
+Match* get_match_by_name(SymbolTable* table, const char* name) {
+    SymbolNode* node = lookup_symbol(table, (char*)name, "MATCH");
+    if (node)
+        return node->value.matchPtr;
     return NULL;
 }
 
@@ -197,7 +200,7 @@ int is_valid_result(const char* result) {
 }
 
 TeamValidationError validate_team(Team *team, char *error_detail) {
-    int goalkeeper = 0, defenders = 0, middlefielders = 0, attakers = 0;
+    int goalkeeper = 0, defenders = 0, middlefielders = 0, attackers = 0, unknown=0;
     //check name empty
     if (!is_non_empty_name(team->name)) {
         snprintf(error_detail, 256, "Team name is empty.");
@@ -210,6 +213,7 @@ TeamValidationError validate_team(Team *team, char *error_detail) {
     }
     bool duplicate = false;
     char player_names[MAX_PLAYERS][100]; 
+    
     //check duplicate
     for (int i = 0; i < team->numPlayers; i++) {
         for (int j = 0; j < i; j++) {
@@ -221,38 +225,38 @@ TeamValidationError validate_team(Team *team, char *error_detail) {
         }
         //count numbers of position divided in goalkeeper, defenders, middlefielders, attackers
         if (strcmp(team->players[i].position, "GK") == 0) goalkeeper++;
-		else if (strcmp(team->players[i].position, "CB") == 0 ||
-		         strcmp(team->players[i].position, "RB") == 0 ||
-		         strcmp(team->players[i].position, "LB") == 0 ||
-		         strcmp(team->players[i].position, "SB") == 0 ||
-		         strcmp(team->players[i].position, "WB") == 0) {
-		    defenders++;
-		}
-		else if (strcmp(team->players[i].position, "CM") == 0 || 
-		         strcmp(team->players[i].position, "CD") == 0 || 
-		         strcmp(team->players[i].position, "AM") == 0 || 
-		         strcmp(team->players[i].position, "DM") == 0 ||
-		         strcmp(team->players[i].position, "RM") == 0 ||
-		         strcmp(team->players[i].position, "LM") == 0) {
-		    middlefielders++;
-		}
-		else if (strcmp(team->players[i].position, "ST") == 0 ||
-		         strcmp(team->players[i].position, "CF") == 0 ||
-		         strcmp(team->players[i].position, "RW") == 0 ||
-		         strcmp(team->players[i].position, "LW") == 0 ||
-		         strcmp(team->players[i].position, "RF") == 0 ||
-		         strcmp(team->players[i].position, "LF") == 0) {
-		    attakers++;
-		}
-		    else {
-        unknown++;
-    	}
+        else if (strcmp(team->players[i].position, "CB") == 0 ||
+                 strcmp(team->players[i].position, "RB") == 0 ||
+                 strcmp(team->players[i].position, "LB") == 0 ||
+                 strcmp(team->players[i].position, "SB") == 0 ||
+                 strcmp(team->players[i].position, "WB") == 0) {
+            defenders++;
+        }
+        else if (strcmp(team->players[i].position, "CM") == 0 || 
+                 strcmp(team->players[i].position, "CD") == 0 || 
+                 strcmp(team->players[i].position, "AM") == 0 || 
+                 strcmp(team->players[i].position, "DM") == 0 ||
+                 strcmp(team->players[i].position, "RM") == 0 ||
+                 strcmp(team->players[i].position, "LM") == 0) {
+            middlefielders++;
+        }
+        else if (strcmp(team->players[i].position, "ST") == 0 ||
+                 strcmp(team->players[i].position, "CF") == 0 ||
+                 strcmp(team->players[i].position, "RW") == 0 ||
+                 strcmp(team->players[i].position, "LW") == 0 ||
+                 strcmp(team->players[i].position, "RF") == 0 ||
+                 strcmp(team->players[i].position, "LF") == 0) {
+            attackers++;
+        }
+        else {
+            unknown++;
+        }
     }
     //check if a symbol of the position of a player is not one known
-	if (unknown > 0) {
-		snprintf(error_detail, 256, "Role not known for %d player (use the standrd role)", unknown);
-		return TEAM_UNKNOWN_ROLE;
-	}
+    if (unknown > 0) {
+        snprintf(error_detail, 256, "Role not known for %d player (use the standrd role)", unknown);
+        return TEAM_UNKNOWN_ROLE;
+    }
     // check numbers player
     if (team->numPlayers > 11) {
         snprintf(error_detail, 256, "Numbers player: %d (max 11)", team->numPlayers);
@@ -280,7 +284,7 @@ TeamValidationError validate_team(Team *team, char *error_detail) {
     // Check role-formation
     if (team->formation.defence != defenders ||
         team->formation.midfield != middlefielders ||
-        team->formation.attack != attakers) {
+        team->formation.attack != attackers) {
         snprintf(error_detail, 256, "Roles are not conformed to the formation! Defenders in theory: %d found: %d, Miffledielders in theory: %d found: %d, Attackers in theory: %d found: %d",
             team->formation.defence, defenders,
             team->formation.midfield, middlefielders,
@@ -346,7 +350,7 @@ MatchValidationError validate_match(Match *match, SymbolTable *table, char *erro
         for (int i = 0; match->scorers[i] != NULL && i < MAX_SCORERS; i++) {
             int found = 0;
             //first search for homeplayer
-            Team* homeTeamPtr = (Team*)homeNode->team;
+            Team* homeTeamPtr = homeNode->value.teamPtr;
             for (int j = 0; j < homeTeamPtr->numPlayers; j++) {
                 if (strcmp(homeTeamPtr->players[j].name, match->scorers[i]) == 0) {
                     home_scorers++;
@@ -356,7 +360,7 @@ MatchValidationError validate_match(Match *match, SymbolTable *table, char *erro
             }
             // then for away team
             if (!found) {
-                Team* awayTeamPtr = (Team*)awayNode->team;
+                Team* awayTeamPtr = awayNode->value.teamPtr;
                 for (int j = 0; j < awayTeamPtr->numPlayers; j++) {
                     if (strcmp(awayTeamPtr->players[j].name, match->scorers[i]) == 0) {
                         away_scorers++;
@@ -376,9 +380,212 @@ MatchValidationError validate_match(Match *match, SymbolTable *table, char *erro
     return MATCH_OK;
 }
 
+// -------------------- TEAM -------------------------
 
-int main(){
-	
+void start_team(SymbolTable* table, const char* name) {
+    Team* team = malloc(sizeof(Team));
+    team->name = strdup(name);
+    team->numPlayers = 0;
+    team->coach = NULL;
+    team->captain = NULL;
+    team->viceCaptain = NULL;
+    team->strategy = NULL;
+    team->formation.attack = 0;
+    team->formation.midfield = 0;
+    team->formation.defence = 0;
+    for (int i = 0; i < MAX_PLAYERS; ++i) {
+        team->players[i].name = NULL;
+        team->players[i].position = NULL;
+    }
+    add_symbol(table, (char*)name, "TEAM", team);
+}
 
+void end_team(SymbolTable* table, const char* name) {
+    Team* team = get_team_by_name(table, name);
+    if (team) {
+        char error_detail[256];
+        TeamValidationError err = validate_team(team, error_detail);
+        if (err != TEAM_OK) {
+            printf("Error in team %s: %s\n", name, error_detail);
+        }
+    }
+}
 
+void set_coach(SymbolTable* table, const char* team_name, const char* coach) {
+    Team* team = get_team_by_name(table, team_name);
+    if (team) {
+        if (team->coach) free(team->coach);
+        team->coach = strdup(coach);
+    }
+}
+
+void set_captain(SymbolTable* table, const char* team_name, const char* captain) {
+    Team* team = get_team_by_name(table, team_name);
+    if (team) {
+        if (team->captain) free(team->captain);
+        team->captain = strdup(captain);
+    }
+}
+
+void set_vicecaptain(SymbolTable* table, const char* team_name, const char* vicecaptain) {
+    Team* team = get_team_by_name(table, team_name);
+    if (team) {
+        if (team->viceCaptain) free(team->viceCaptain);
+        team->viceCaptain = strdup(vicecaptain);
+    }
+}
+
+void set_strategy(SymbolTable* table, const char* team_name, const char* strategy) {
+    Team* team = get_team_by_name(table, team_name);
+    if (team) {
+        if (team->strategy) free(team->strategy);
+        team->strategy = strdup(strategy);
+    }
+}
+
+void add_player_to_team(SymbolTable* table, const char* team_name, const char* player, const char* position) {
+    Team* team = get_team_by_name(table, team_name);
+    if (team && team->numPlayers < MAX_PLAYERS) {
+        team->players[team->numPlayers].name = strdup(player);
+        team->players[team->numPlayers].position = strdup(position);
+        team->numPlayers++;
+    }
+}
+
+void set_formation(SymbolTable* table, const char* team_name, int def, int mid, int att) {
+    Team* team = get_team_by_name(table, team_name);
+    if (team) {
+        team->formation.defence = def;
+        team->formation.midfield = mid;
+        team->formation.attack = att;
+    }
+}
+
+// -------------------- MATCH ------------------------
+
+void start_match(SymbolTable* table, const char* name) {
+    Match* match = malloc(sizeof(Match));
+    match->stadium = NULL;
+    match->homeTeam = NULL;
+    match->awayTeam = NULL;
+    match->date = NULL;
+    match->time = NULL;
+    match->weather = NULL;
+    match->result = NULL;
+    match->referee = NULL;
+    for (int i = 0; i < MAX_SCORERS; ++i) match->scorers[i] = NULL;
+    add_symbol(table, (char*)name, "MATCH", match);
+}
+
+void end_match(SymbolTable* table, const char* name) {
+    Match* match = get_match_by_name(table, name);
+    if (match) {
+        char error_detail[256];
+        MatchValidationError err = validate_match(match, table, error_detail);
+        if (err != MATCH_OK) {
+            printf("Error in match %s: %s\n", name, error_detail);
+        }
+    }
+}
+
+void set_stadium(SymbolTable* table, const char* match_name, const char* stadium) {
+    Match* match = get_match_by_name(table, match_name);
+    if (match) {
+        if (match->stadium) free(match->stadium);
+        match->stadium = strdup(stadium);
+    }
+}
+
+void set_home_team(SymbolTable* table, const char* match_name, const char* team_name) {
+    Match* match = get_match_by_name(table, match_name);
+    if (match) {
+        if (match->homeTeam) free(match->homeTeam);
+        match->homeTeam = strdup(team_name);
+    }
+}
+
+void set_away_team(SymbolTable* table, const char* match_name, const char* team_name) {
+    Match* match = get_match_by_name(table, match_name);
+    if (match) {
+        if (match->awayTeam) free(match->awayTeam);
+        match->awayTeam = strdup(team_name);
+    }
+}
+
+void set_match_date(SymbolTable* table, const char* match_name, const char* date) {
+    Match* match = get_match_by_name(table, match_name);
+    if (match) {
+        if (match->date) free(match->date);
+        match->date = strdup(date);
+    }
+}
+
+void set_match_time(SymbolTable* table, const char* match_name, const char* time) {
+    Match* match = get_match_by_name(table, match_name);
+    if (match) {
+        if (match->time) free(match->time);
+        match->time = strdup(time);
+    }
+}
+
+void set_weather(SymbolTable* table, const char* match_name, const char* weather) {
+    Match* match = get_match_by_name(table, match_name);
+    if (match) {
+        if (match->weather) free(match->weather);
+        match->weather = strdup(weather);
+    }
+}
+
+void set_referee(SymbolTable* table, const char* match_name, const char* referee) {
+    Match* match = get_match_by_name(table, match_name);
+    if (match) {
+        if (match->referee) free(match->referee);
+        match->referee = strdup(referee);
+    }
+}
+
+void set_result(SymbolTable* table, const char* match_name, const char* result) {
+    Match* match = get_match_by_name(table, match_name);
+    if (match) {
+        if (match->result) free(match->result);
+        match->result = strdup(result);
+    }
+}
+
+// ------------------- SCORERS -----------------------
+
+void start_scorer_list(SymbolTable* table, const char* match_name) {
+    Match* match = get_match_by_name(table, match_name);
+    if (match) {
+        for (int i = 0; i < MAX_SCORERS; ++i) {
+            if (match->scorers[i]) free(match->scorers[i]);
+            match->scorers[i] = NULL;
+        }
+    }
+}
+
+void add_scorer(SymbolTable* table, const char* match_name, const char* scorer) {
+    Match* match = get_match_by_name(table, match_name);
+    if (match) {
+        for (int i = 0; i < MAX_SCORERS; ++i) {
+            if (match->scorers[i] == NULL) {
+                match->scorers[i] = strdup(scorer);
+                break;
+            }
+        }
+    }
+}
+
+int is_string(const char* s) {
+    return s != NULL && strlen(s) > 0;
+}
+
+int is_valid_position(const char* s) {
+    if (!s) return 0;
+    // accetta solo due lettere, puoi cambiare se serve
+    return strlen(s) == 2 && isupper(s[0]) && isupper(s[1]);
+}
+
+void end_scorer_list(SymbolTable* table, const char* match_name) {
+    // Se non ti serve nulla, lascia vuota!
 }
