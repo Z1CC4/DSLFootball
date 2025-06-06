@@ -14,7 +14,7 @@ SymbolTable symbol_table;
 const char* current_team_name = NULL;
 const char* current_match_name = NULL;
 %}
-
+%define parse.error verbose
 %union {
     char* str;
     int num;
@@ -22,8 +22,8 @@ const char* current_match_name = NULL;
 
 %token TEAM MATCH PLAYER FORMATION POSITION CAPTAIN VICECAPTAIN COACH STRATEGY
 %token STADIUM HOMETEAM AWAYTEAM DATE TIME WEATHER RESULT SCORERS REFEREE
-%token LBRACE RBRACE EQUAL HYPHEN SEMICOLON COMMA LSQUARE RSQUARE QUOTE
-%token <str> STRING DATESTR TIMESTR POSITIONVAL STRATEGYVAL
+%token LBRACE RBRACE EQUAL HYPHEN SEMICOLON COMMA LSQUARE RSQUARE 
+%token <str> STRING DATESTR
 %token <num> NUMBER
 
 %%
@@ -106,7 +106,7 @@ team_attribute:
             yyerror("Strategy must be a string");
         set_strategy(&symbol_table, current_team_name, $3);
     }
-  | PLAYER STRING POSITION POSITIONVAL SEMICOLON {
+  | PLAYER STRING POSITION STRING SEMICOLON {
         if (!is_non_empty_name($2))
             yyerror("Player name cannot be empty");
         if (!is_valid_position($4))
@@ -139,7 +139,7 @@ match_attribute:
             yyerror("Date must be in the format YYYY-MM-DD and must be a real date");
         set_match_date(&symbol_table, current_match_name, $3);
     }
-  | TIME EQUAL TIMESTR SEMICOLON {
+  | TIME EQUAL STRING SEMICOLON {
         set_match_time(&symbol_table, current_match_name, $3);
     }
   | WEATHER EQUAL STRING SEMICOLON {
@@ -155,7 +155,7 @@ match_attribute:
             yyerror("Result must be in the format X-Y with both X and Y >= 0");
         set_result(&symbol_table, current_match_name, buf);
     }
-  | SCORERS EQUAL LSQUARE scorer_list RSQUARE {
+  | SCORERS EQUAL LSQUARE scorer_list RSQUARE SEMICOLON {
         end_scorer_list(&symbol_table, current_match_name);
     }
   ;
