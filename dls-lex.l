@@ -41,12 +41,17 @@ id       {letter}({letter}|{digit})*
 "-"                     return HYPHEN; 
 ";"                     return SEMICOLON; 
 ","                     return COMMA;
-"\\["                   return LSQUARE; 
-"\\]"                   return RSQUARE; 
-"\""                   return QUOTE;
+"["                   return LSQUARE; 
+"]"                   return RSQUARE; 
 
-[A-Z]{2}                return POSITIONVAL; 
-"[0-9]{4}-[0-9]{2}-[0-9]{2}" return DATESTR; 
+[0-9]{4}-[0-9]{2}-[0-9]{2} {
+    int len = yyleng;
+    char* tmp = (char*)malloc(len + 1);
+    strncpy(tmp, yytext, len);
+    tmp[len] = '\0';
+    yylval.str = tmp;
+    return DATESTR;
+}
 \"[^\"]*\" {
     int len = yyleng - 2;
     char* tmp = (char*)malloc(len + 1);
@@ -57,7 +62,7 @@ id       {letter}({letter}|{digit})*
 }
 
 
-[0-9]+                  return NUMBER;
+[0-9]+    { yylval.num = atoi(yytext); return NUMBER; }
 
 .                       { 
     printf("Errore lessicale: carattere sconosciuto '%s'\n", yytext); 
