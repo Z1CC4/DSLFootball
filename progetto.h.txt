@@ -100,7 +100,6 @@ typedef enum {
     SCORER_INVALID_NAME
 } ValidationResult;
 
-int is_alpha_string(const char *str);
 
 // Symbol Table management
 void initialize_symbol_table(SymbolTable* table);
@@ -158,6 +157,7 @@ void start_scorer_list(SymbolTable* table, const char* match_name);
 void add_scorer(SymbolTable* table, const char* match_name, const char* scorer);
 void end_scorer_list(SymbolTable* table, const char* match_name);
 
+int is_alpha_string(const char *str);
 //VALIDATION
 ValidationResult validate_player(Player *player, char *error_detail);
 ValidationResult validate_coach(Coach *coach, char *error_detail);
