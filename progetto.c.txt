@@ -5,6 +5,129 @@
 #include <ctype.h>
 #include "progetto.h"
 int yyparse(void);
+
+bool is_alpha_string(const char *str) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (!isalpha(str[i]) && str[i] != ' ') {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+ValidationResult validate_player(Player *player, char *error_detail) {
+    if (!player->name || strlen(player->name) == 0) {
+        snprintf(error_detail, 256, "Player name is missing.");
+        return PLAYER_INVALID_NAME;
+    }
+    if (!is_alpha_string(player->name)) {
+        snprintf(error_detail, 256, "Player name contains invalid characters: %s", player->name);
+        return PLAYER_INVALID_NAME;
+    }
+    if (!player->role || strlen(player->role) == 0) {
+        snprintf(error_detail, 256, "Player role is missing.");
+        return PLAYER_INVALID_ROLE;
+    }
+    if (!is_alpha_string(player->role)) {
+        snprintf(error_detail, 256, "Player role contains invalid characters: %s", player->role);
+        return PLAYER_INVALID_ROLE;
+    }
+    return VALID;
+}
+
+ValidationResult validate_coach(Coach *coach, char *error_detail) {
+    if (!coach->coach || strlen(coach->coach) == 0) {
+        snprintf(error_detail, 256, "Coach name is missing.");
+        return COACH_INVALID_NAME;
+    }
+    if (!is_alpha_string(coach->coach)) {
+        snprintf(error_detail, 256, "Coach name contains invalid characters: %s", coach->coach);
+        return COACH_INVALID_NAME;
+    }
+    return VALID;
+}
+
+ValidationResult validate_referee(Referee *referee, char *error_detail) {
+    if (!referee->referee || strlen(referee->referee) == 0) {
+        snprintf(error_detail, 256, "Referee name is missing.");
+        return REFEREE_INVALID_NAME;
+    }
+    if (!is_alpha_string(referee->referee)) {
+        snprintf(error_detail, 256, "Referee name contains invalid characters: %s", referee->referee);
+        return REFEREE_INVALID_NAME;
+    }
+    return VALID;
+}
+
+ValidationResult validate_team(Team *team, char *error_detail) {
+    if (!team->name || strlen(team->name) == 0) {
+        snprintf(error_detail, 256, "Team name is missing.");
+        return TEAM_INVALID_NAME;
+    }
+    if (!is_alpha_string(team->name)) {
+        snprintf(error_detail, 256, "Team name contains invalid characters: %s", team->name);
+        return TEAM_INVALID_NAME;
+    }
+    if (!team->strategy || strlen(team->strategy) == 0) {
+        snprintf(error_detail, 256, "Team strategy is missing.");
+        return TEAM_INVALID_STRATEGY;
+    }
+    if (!is_alpha_string(team->strategy)) {
+        snprintf(error_detail, 256, "Team strategy contains invalid characters: %s", team->strategy);
+        return TEAM_INVALID_STRATEGY;
+    }
+    return VALID;
+}
+
+ValidationResult validate_match(Match *match, char *error_detail) {
+    if (!match->stadium || strlen(match->stadium) == 0) {
+        snprintf(error_detail, 256, "Stadium is missing.");
+        return MATCH_INVALID_STADIUM;
+    }
+    if (!is_alpha_string(match->stadium)) {
+        snprintf(error_detail, 256, "Stadium contains invalid characters: %s", match->stadium);
+        return MATCH_INVALID_STADIUM;
+    }
+    if (!match->homeTeam || strlen(match->homeTeam) == 0) {
+        snprintf(error_detail, 256, "Home team is missing.");
+        return MATCH_INVALID_HOME_TEAM;
+    }
+    if (!is_alpha_string(match->homeTeam)) {
+        snprintf(error_detail, 256, "Home team contains invalid characters: %s", match->homeTeam);
+        return MATCH_INVALID_HOME_TEAM;
+    }
+    if (!match->awayTeam || strlen(match->awayTeam) == 0) {
+        snprintf(error_detail, 256, "Away team is missing.");
+        return MATCH_INVALID_AWAY_TEAM;
+    }
+    if (!is_alpha_string(match->awayTeam)) {
+        snprintf(error_detail, 256, "Away team contains invalid characters: %s", match->awayTeam);
+        return MATCH_INVALID_AWAY_TEAM;
+    }
+    if (!match->weather || strlen(match->weather) == 0) {
+        snprintf(error_detail, 256, "Weather is missing.");
+        return MATCH_INVALID_WEATHER;
+    }
+    if (!is_alpha_string(match->weather)) {
+        snprintf(error_detail, 256, "Weather contains invalid characters: %s", match->weather);
+        return MATCH_INVALID_WEATHER;
+    }
+    return VALID;
+}
+
+ValidationResult validate_scorer(Scorer *scorer, char *error_detail) {
+    if (!scorer->scorer || strlen(scorer->scorer) == 0) {
+        snprintf(error_detail, 256, "Scorer name is missing.");
+        return SCORER_INVALID_NAME;
+    }
+    if (!is_alpha_string(scorer->scorer)) {
+        snprintf(error_detail, 256, "Scorer name contains invalid characters: %s", scorer->scorer);
+        return SCORER_INVALID_NAME;
+    }
+    return VALID;
+}
+
        
 void initialize_symbol_table(SymbolTable* table) {
     table->head = NULL;
