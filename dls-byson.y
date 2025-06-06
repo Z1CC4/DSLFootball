@@ -1,8 +1,8 @@
 %{
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <stdio.h>
+#include "progetto.h"
 
 void yyerror(const char *s) {
     fprintf(stderr, "%s\n", s);
@@ -10,11 +10,14 @@ void yyerror(const char *s) {
 }
 
 int yylex(void);
+SymbolTable symbol_table;
+const char* current_team_name = NULL;
+const char* current_match_name = NULL;
 %}
 %union {
-    char* str;		//identifier
-    double value;	//value of an identifier of type NUM
-	}
+    char* str;
+    int num;
+}
 
 %token TEAM MATCH PLAYER FORMATION POSITION CAPTAIN VICECAPTAIN COACH STRATEGY
 %token STADIUM HOMETEAM AWAYTEAM DATE TIME WEATHER RESULT SCORERS REFEREE
@@ -33,10 +36,10 @@ block : team_declaration
 
 team_declaration:
     TEAM STRING LBRACE team_body RBRACE {
-        start_team($2);
-        end_team();
+        start_team(&symbol_table, $2);
+        end_team(&symbol_table, $2);
         char error_detail[256];
-        Team *team = get_team_by_name($2);
+        Team *team = get_team_by_name(&symbol_table, $2);
         if (!team) {
             yyerror("Errore interno: team non trovato dopo la creazione!");
             YYABORT;
@@ -50,10 +53,10 @@ team_declaration:
 
 match_declaration:
     MATCH STRING LBRACE match_body RBRACE {
-        start_match($2);
-        end_match();
+        start_match(&symbol_table, $2);
+        end_match(&symbol_table, $2);
         char error_detail[256];
-        Match *match = get_match_by_name($2); // implementa questa funzione come per get_team_by_name!
+        Match *match = get_match_by_name(&symbol_table, $2);
         if (!match) {
             yyerror("Errore interno: match non trovato dopo la creazione!");
             YYABORT;
@@ -67,103 +70,104 @@ match_declaration:
 
 team_body:
     team_attribute team_body
-  | team_attribute;
-
-match_body:
-    match_attribute match_body
-  | match_attribute;
+  | team_attribute
+  ;
 
 team_attribute:
-    FORMATION formation_attribute SEMICOLON {
-      set_formation(current_team_name, $1, $3, $5);
-   }
+    FORMATION NUMBER HYPHEN NUMBER HYPHEN NUMBER SEMICOLON {
+        set_formation(&symbol_table, current_team_name, $2, $4, $6);
+    }
   | COACH EQUAL VAR SEMICOLON {
         if (!is_string($3))
             yyerror("Coach must be a string");
-        set_coach($3);
+        set_coach(&symbol_table, current_team_name, $3);
     }
   | CAPTAIN EQUAL VAR SEMICOLON {
-        if (!is_player_in_team(current_team_name, $3))
+        Team* team = get_team_by_name(&symbol_table, current_team_name);
+        if (!is_player_in_team(team, $3))
             yyerror("Captain must be a declared player");
-        set_captain($3);
+        set_captain(&symbol_table, current_team_name, $3);
     }
   | VICECAPTAIN EQUAL VAR SEMICOLON {
-        if (!is_player_in_team(current_team_name, $3))
+        Team* team = get_team_by_name(&symbol_table, current_team_name);
+        if (!is_player_in_team(team, $3))
             yyerror("Vice-captain must be a declared player");
-        set_vicecaptain($3);
+        set_vicecaptain(&symbol_table, current_team_name, $3);
     }
   | STRATEGY EQUAL VAR SEMICOLON {
         if (!is_string($3))
             yyerror("Strategy must be a string");
-        set_strategy($3);
+        set_strategy(&symbol_table, current_team_name, $3);
     }
   | PLAYER VAR POSITION POSITIONVAL SEMICOLON {
         if (!is_non_empty_name($2))
             yyerror("Player name cannot be empty");
         if (!is_valid_position($4))
             yyerror("Player position must be a valid two-letter code (e.g. GK, CB, ST)");
-        add_player_to_team(current_team_name, $2, $4);
-    };
+        add_player_to_team(&symbol_table, current_team_name, $2, $4);
+    }
+  ;
+
+match_body:
+    match_attribute match_body
+  | match_attribute
+  ;
 
 match_attribute:
     STADIUM EQUAL STRING SEMICOLON {
-        set_stadium($3);
+        set_stadium(&symbol_table, current_match_name, $3);
     }
   | HOMETEAM EQUAL STRING SEMICOLON {
         if (!lookup_symbol(&symbol_table, $3, "TEAM"))
             yyerror("Home team must be a declared team");
-        set_home_team($3);
+        set_home_team(&symbol_table, current_match_name, $3);
     }
   | AWAYTEAM EQUAL STRING SEMICOLON {
         if (!lookup_symbol(&symbol_table, $3, "TEAM"))
             yyerror("Away team must be a declared team");
-        set_away_team($3);
+        set_away_team(&symbol_table, current_match_name, $3);
     }
   | DATE EQUAL DATESTR SEMICOLON {
         if (!is_valid_date($3))
             yyerror("Date must be in the format YYYY-MM-DD and must be a real date");
-        set_match_date($3);
+        set_match_date(&symbol_table, current_match_name, $3);
     }
   | TIME EQUAL TIMESTR SEMICOLON {
-        set_match_time($3);
+        set_match_time(&symbol_table, current_match_name, $3);
     }
   | WEATHER EQUAL STRING SEMICOLON {
-        set_weather($3);
+        set_weather(&symbol_table, current_match_name, $3);
     }
   | REFEREE EQUAL STRING SEMICOLON {
-        set_referee($3);
+        set_referee(&symbol_table, current_match_name, $3);
     }
   | RESULT EQUAL NUMBER HYPHEN NUMBER SEMICOLON {
-         char buf[20];
+        char buf[20];
         snprintf(buf, sizeof(buf), "%d-%d", (int)$3, (int)$5);
         if (!is_valid_result(buf))
             yyerror("Result must be in the format X-Y with both X and Y >= 0");
-        set_result($3, $5);
+        set_result(&symbol_table, current_match_name, buf);
     }
   | SCORERS EQUAL LSQUARE scorer_list RSQUARE {
-        end_scorer_list();
-    };
-
-formation_attribute:
-    NUMBER HYPHEN NUMBER HYPHEN NUMBER {
-        set_formation($1, $3, $5);
-    };
+        end_scorer_list(&symbol_table, current_match_name);
+    }
+  ;
 
 scorer_list:
     scorer_list COMMA VAR {
-        add_scorer($3);
+        add_scorer(&symbol_table, current_match_name, $3);
     }
   | VAR {
-        start_scorer_list();
-        add_scorer($1);
+        start_scorer_list(&symbol_table, current_match_name);
+        add_scorer(&symbol_table, current_match_name, $1);
     }
   | /* empty */ {
-        start_scorer_list();
-    };
+        start_scorer_list(&symbol_table, current_match_name);
+    }
+  ;
 %%
 
 int main() {
-    init_symbol_table();
-    yyparse();
+    initialize_symbol_table(&symbol_table);
     return 0;
 }
