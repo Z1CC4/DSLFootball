@@ -41,8 +41,40 @@ id       {letter}({letter}|{digit})*
 "-"                     return HYPHEN; 
 ";"                     return SEMICOLON; 
 ","                     return COMMA;
-"["                   return LSQUARE; 
-"]"                   return RSQUARE; 
+"["                   	return LSQUARE; 
+"]"                     return RSQUARE; 
+"("      				return LPAREN;
+")"      				return RPAREN;
+
+setCaptain       return SETCAPTAIN;
+setCoach         return SETCOACH;
+setViceCaptain   return SETVICECAPTAIN;
+setStrategy      return SETSTRATEGY;
+setFormation     return SETFORMATION;
+
+setStadium       return SETSTADIUM;
+setHomeTeam      return SETHOMETEAM;
+setAwayTeam      return SETAWAYTEAM;
+setMatchDate     return SETMATCHDATE;
+setMatchTime     return SETMATCHTIME;
+setWeather       return SETWEATHER;
+setReferee       return SETREFEREE;
+setResult        return SETRESULT;
+
+hasPlayer        return HASPLAYER;
+hasCaptain       return HASCAPTAIN;
+hasFormation     return HASFORMATION;
+hasCoach         return HASCOACH;
+hasViceCaptain   return HASVICECAPTAIN;
+hasStrategy      return HASSTRATEGY;
+
+hasStadium       return HASSTADIUM;
+hasDate          return HASDATE;
+hasTime          return HASTIME;
+hasWeather       return HASWEATHER;
+hasResult        return HASRESULT;
+hasReferee       return HASREFEREE;
+hasScorer        return HASSCORER;
 
 [0-9]{4}-[0-9]{2}-[0-9]{2} {
     int len = yyleng;
@@ -60,7 +92,6 @@ id       {letter}({letter}|{digit})*
     yylval.str = tmp;
     return STRING;
 }
-
 
 [0-9]+    { yylval.num = atoi(yytext); return NUMBER; }
 
