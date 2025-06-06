@@ -1,140 +1,113 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 #include <ctype.h>
 #include "progetto.h"
-int yyparse(void);
 
-bool is_alpha_string(const char *str) {
+// ---------------------- UTILITY ----------------------
+
+int is_alpha_string(const char *str) {
     for (int i = 0; str[i] != '\0'; i++) {
         if (!isalpha(str[i]) && str[i] != ' ') {
-            return false;
+            return 0;
         }
     }
-    return true;
+    return 1;
 }
 
-
-ValidationResult validate_player(Player *player, char *error_detail) {
-    if (!player->name || strlen(player->name) == 0) {
-        snprintf(error_detail, 256, "Player name is missing.");
-        return PLAYER_INVALID_NAME;
-    }
-    if (!is_alpha_string(player->name)) {
-        snprintf(error_detail, 256, "Player name contains invalid characters: %s", player->name);
-        return PLAYER_INVALID_NAME;
-    }
-    if (!player->role || strlen(player->role) == 0) {
-        snprintf(error_detail, 256, "Player role is missing.");
-        return PLAYER_INVALID_ROLE;
-    }
-    if (!is_alpha_string(player->role)) {
-        snprintf(error_detail, 256, "Player role contains invalid characters: %s", player->role);
-        return PLAYER_INVALID_ROLE;
-    }
-    return VALID;
+int is_non_empty_name(const char* name) {
+    return name != NULL && strlen(name) > 0;
 }
 
-ValidationResult validate_coach(Coach *coach, char *error_detail) {
-    if (!coach->coach || strlen(coach->coach) == 0) {
-        snprintf(error_detail, 256, "Coach name is missing.");
-        return COACH_INVALID_NAME;
+// Controlla che tutti i giocatori abbiano il nome
+int has_no_empty_players(Team* team) {
+    for (int i = 0; i < team->numPlayers; i++) {
+        if (!is_non_empty_name(team->players[i].name))
+            return 0;
     }
-    if (!is_alpha_string(coach->coach)) {
-        snprintf(error_detail, 256, "Coach name contains invalid characters: %s", coach->coach);
-        return COACH_INVALID_NAME;
-    }
-    return VALID;
+    return 1;
 }
 
-ValidationResult validate_referee(Referee *referee, char *error_detail) {
-    if (!referee->referee || strlen(referee->referee) == 0) {
-        snprintf(error_detail, 256, "Referee name is missing.");
-        return REFEREE_INVALID_NAME;
+int is_team_name_unique(const char* name, SymbolTable* table) {
+    SymbolNode* current = table->head;
+    while (current) {
+        if (strcmp(current->name, name) == 0 && strcmp(current->type, "TEAM") == 0)
+            return 0;
+        current = current->next;
     }
-    if (!is_alpha_string(referee->referee)) {
-        snprintf(error_detail, 256, "Referee name contains invalid characters: %s", referee->referee);
-        return REFEREE_INVALID_NAME;
-    }
-    return VALID;
+    return 1;
 }
 
-ValidationResult validate_team(Team *team, char *error_detail) {
-    if (!team->name || strlen(team->name) == 0) {
-        snprintf(error_detail, 256, "Team name is missing.");
-        return TEAM_INVALID_NAME;
+int is_match_name_unique(const char* name, SymbolTable* table) {
+    SymbolNode* current = table->head;
+    while (current) {
+        if (strcmp(current->name, name) == 0 && strcmp(current->type, "MATCH") == 0)
+            return 0;
+        current = current->next;
     }
-    if (!is_alpha_string(team->name)) {
-        snprintf(error_detail, 256, "Team name contains invalid characters: %s", team->name);
-        return TEAM_INVALID_NAME;
-    }
-    if (!team->strategy || strlen(team->strategy) == 0) {
-        snprintf(error_detail, 256, "Team strategy is missing.");
-        return TEAM_INVALID_STRATEGY;
-    }
-    if (!is_alpha_string(team->strategy)) {
-        snprintf(error_detail, 256, "Team strategy contains invalid characters: %s", team->strategy);
-        return TEAM_INVALID_STRATEGY;
-    }
-    return VALID;
+    return 1;
 }
 
-ValidationResult validate_match(Match *match, char *error_detail) {
-    if (!match->stadium || strlen(match->stadium) == 0) {
-        snprintf(error_detail, 256, "Stadium is missing.");
-        return MATCH_INVALID_STADIUM;
+int is_player_in_team(Team* team, const char* player_name) {
+    for (int i = 0; i < team->numPlayers; i++) {
+        if (strcmp(team->players[i].name, player_name) == 0)
+            return 1;
     }
-    if (!is_alpha_string(match->stadium)) {
-        snprintf(error_detail, 256, "Stadium contains invalid characters: %s", match->stadium);
-        return MATCH_INVALID_STADIUM;
-    }
-    if (!match->homeTeam || strlen(match->homeTeam) == 0) {
-        snprintf(error_detail, 256, "Home team is missing.");
-        return MATCH_INVALID_HOME_TEAM;
-    }
-    if (!is_alpha_string(match->homeTeam)) {
-        snprintf(error_detail, 256, "Home team contains invalid characters: %s", match->homeTeam);
-        return MATCH_INVALID_HOME_TEAM;
-    }
-    if (!match->awayTeam || strlen(match->awayTeam) == 0) {
-        snprintf(error_detail, 256, "Away team is missing.");
-        return MATCH_INVALID_AWAY_TEAM;
-    }
-    if (!is_alpha_string(match->awayTeam)) {
-        snprintf(error_detail, 256, "Away team contains invalid characters: %s", match->awayTeam);
-        return MATCH_INVALID_AWAY_TEAM;
-    }
-    if (!match->weather || strlen(match->weather) == 0) {
-        snprintf(error_detail, 256, "Weather is missing.");
-        return MATCH_INVALID_WEATHER;
-    }
-    if (!is_alpha_string(match->weather)) {
-        snprintf(error_detail, 256, "Weather contains invalid characters: %s", match->weather);
-        return MATCH_INVALID_WEATHER;
-    }
-    return VALID;
+    return 0;
 }
 
-ValidationResult validate_scorer(Scorer *scorer, char *error_detail) {
-    if (!scorer->scorer || strlen(scorer->scorer) == 0) {
-        snprintf(error_detail, 256, "Scorer name is missing.");
-        return SCORER_INVALID_NAME;
-    }
-    if (!is_alpha_string(scorer->scorer)) {
-        snprintf(error_detail, 256, "Scorer name contains invalid characters: %s", scorer->scorer);
-        return SCORER_INVALID_NAME;
-    }
-    return VALID;
+int is_valid_formation(const Formation* f) {
+    if (f->defence < 0 || f->defence > 6) return 0;
+    if (f->midfield < 0 || f->midfield > 6) return 0;
+    if (f->attack < 0 || f->attack > 6) return 0;
+    return 1;
 }
 
-       
+int is_valid_date(const char* date) {
+    if (!date || strlen(date) != 10) return 0;
+    if (!(isdigit(date[0]) && isdigit(date[1]) && isdigit(date[2]) && isdigit(date[3]))) return 0;
+    if (date[4] != '-') return 0;
+    if (!(isdigit(date[5]) && isdigit(date[6]))) return 0;
+    if (date[7] != '-') return 0;
+    if (!(isdigit(date[8]) && isdigit(date[9]))) return 0;
+    int year = (date[0]-'0')*1000 + (date[1]-'0')*100 + (date[2]-'0')*10 + (date[3]-'0');
+    int month = (date[5]-'0')*10 + (date[6]-'0');
+    int day = (date[8]-'0')*10 + (date[9]-'0');
+    if (month < 1 || month > 12) return 0;
+    int max_days = 31;
+    if (month == 2) {
+        int leap = (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
+        max_days = leap ? 29 : 28;
+    } else if (month == 4 || month == 6 || month == 9 || month == 11) {
+        max_days = 30;
+    }
+    if (day < 1 || day > max_days) return 0;
+    return 1;
+}
+
+int is_valid_result(const char* result) {
+    int x, y;
+    if (sscanf(result, "%d-%d", &x, &y) != 2) return 0;
+    return (x >= 0 && y >= 0);
+}
+
+int is_string(const char* s) {
+    return s != NULL && strlen(s) > 0;
+}
+
+int is_valid_position(const char* s) {
+    if (!s) return 0;
+    return strlen(s) == 2 && isupper(s[0]) && isupper(s[1]);
+}
+
+// ------------------- SYMBOL TABLE -------------------
+
 void initialize_symbol_table(SymbolTable* table) {
     table->head = NULL;
 }
 
 void add_symbol(SymbolTable* table, char* name, char* type, void* val){
-    SymbolNode* newNode = malloc(sizeof(SymbolNode));  //allocates memory for newNode
+    SymbolNode* newNode = malloc(sizeof(SymbolNode));
     if(!newNode){
         fprintf(stderr, "There is no free memory.\n");
         exit(1);
@@ -142,15 +115,12 @@ void add_symbol(SymbolTable* table, char* name, char* type, void* val){
     newNode->name = strdup(name);
     newNode->type = strdup(type);
     newNode->next = table->head;
-
-    // Assegna il puntatore in base al tipo
     if(strcmp(type, "TEAM") == 0)
         newNode->value.teamPtr = (Team*)val;
     else if(strcmp(type, "MATCH") == 0)
         newNode->value.matchPtr = (Match*)val;
     else
-        newNode->value.ptr = val;  // fallback generico
-
+        newNode->value.ptr = val;
     table->head = newNode;
 }
 
@@ -172,7 +142,6 @@ int delete_symbol(SymbolTable* table, char* name, char* type){
     }
     SymbolNode* current = table->head;
     SymbolNode* previous = NULL;
-    
     if(strcmp(table->head->name, name)==0 && strcmp(table->head->type, type)==0){
         table->head = current->next;  
         free(current->name);
@@ -181,10 +150,8 @@ int delete_symbol(SymbolTable* table, char* name, char* type){
         printf("Successful deletion!\n");
         return 1;
     }
-
-    current = table->head->next; //since the head has been checked, in this point we know that it is not what we are searching for, so we increase the pointers;
+    current = table->head->next;
     previous = table->head;
-
     while(current){
         if(strcmp(current->name, name)==0 && strcmp(current->type, type)==0){
             previous->next=current->next;
@@ -199,7 +166,6 @@ int delete_symbol(SymbolTable* table, char* name, char* type){
     }
     printf("Symbol not found!\n");
     return 0;
-
 }
 
 void print_symbol_table(SymbolTable* table) {
@@ -235,272 +201,6 @@ Match* get_match_by_name(SymbolTable* table, const char* name) {
     if (node)
         return node->value.matchPtr;
     return NULL;
-}
-
-//check field not empty (es TEAM "")
-int is_non_empty_name(const char* name) {
-    return name != NULL && strlen(name) > 0;
-}
-//check same thing but for player
-int has_no_empty_players(Team* team) {
-    for (int i = 0; i < team->numPlayers; i++) {
-        if (!is_non_empty_name(team->players[i].name))
-            return 0;
-    }
-    return 1;
-}
-
-//check if the name of the team is unique
-int is_team_name_unique(const char* name, SymbolTable* table) {
-    SymbolNode* current = table->head;
-    while (current) {
-        if (strcmp(current->name, name) == 0 && strcmp(current->type, "TEAM") == 0)
-            return 0;
-        current = current->next;
-    }
-    return 1;
-}
-//check if the team name is unique
-int is_match_name_unique(const char* name, SymbolTable* table) {
-    SymbolNode* current = table->head;
-    while (current) {
-        if (strcmp(current->name, name) == 0 && strcmp(current->type, "MATCH") == 0)
-            return 0;
-        current = current->next;
-    }
-    return 1;
-}
-
-//to use for captain ecc.
-int is_player_in_team(Team* team, const char* player_name) {
-    for (int i = 0; i < team->numPlayers; i++) {
-        if (strcmp(team->players[i].name, player_name) == 0)
-            return 1;
-    }
-    return 0;
-}
-//check if formation make sense (no more then 6 for repart)
-int is_valid_formation(const Formation* f) {
-    if (f->defence < 0 || f->defence > 6) return 0;
-    if (f->midfield < 0 || f->midfield > 6) return 0;
-    if (f->attack < 0 || f->attack > 6) return 0;
-    return 1;
-}
-//check if the data make sense
-int is_valid_date(const char* date) {
-    if (!date || strlen(date) != 10) return 0;
-    // check base format: YYYY-MM-DD
-    if (!(isdigit(date[0]) && isdigit(date[1]) && isdigit(date[2]) && isdigit(date[3]))) return 0;
-    if (date[4] != '-') return 0;
-    if (!(isdigit(date[5]) && isdigit(date[6]))) return 0;
-    if (date[7] != '-') return 0;
-    if (!(isdigit(date[8]) && isdigit(date[9]))) return 0;
-
-    //count year and month and day
-    int year = (date[0]-'0')*1000 + (date[1]-'0')*100 + (date[2]-'0')*10 + (date[3]-'0');
-    int month = (date[5]-'0')*10 + (date[6]-'0');
-    int day = (date[8]-'0')*10 + (date[9]-'0');
-
-    // check if month is valid
-    if (month < 1 || month > 12) return 0;
-
-    // check if the day exist for the month
-    int max_days = 31;
-    if (month == 2) {
-        int leap = (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
-        max_days = leap ? 29 : 28;
-    } else if (month == 4 || month == 6 || month == 9 || month == 11) {
-        max_days = 30;
-    }
-    if (day < 1 || day > max_days) return 0;
-    return 1;
-}
-//check if the numbers of the score make sense 
-int is_valid_result(const char* result) {
-    int x, y;
-    if (sscanf(result, "%d-%d", &x, &y) != 2) return 0;
-    return (x >= 0 && y >= 0);
-}
-
-TeamValidationError validate_team(Team *team, char *error_detail) {
-    int goalkeeper = 0, defenders = 0, middlefielders = 0, attackers = 0, unknown=0;
-    //check name empty
-    if (!is_non_empty_name(team->name)) {
-        snprintf(error_detail, 256, "Team name is empty.");
-        return TEAM_EMPTY_NAME;
-    }
-    //check if player empty
-    if (!has_no_empty_players(team)) {
-        snprintf(error_detail, 256, "Some player names are empty.");
-        return TEAM_PLAYER_EMPTY_NAME;
-    }
-    bool duplicate = false;
-    char player_names[MAX_PLAYERS][100]; 
-    
-    //check duplicate
-    for (int i = 0; i < team->numPlayers; i++) {
-        for (int j = 0; j < i; j++) {
-            if (strcmp(team->players[i].name, team->players[j].name) == 0) {
-                duplicate = true;
-                snprintf(error_detail, 256, "A player is a duplicate: %s", team->players[i].name);
-                return TEAM_DUPLICATE_PLAYER;
-            }
-        }
-        //count numbers of position divided in goalkeeper, defenders, middlefielders, attackers
-        if (strcmp(team->players[i].position, "GK") == 0) goalkeeper++;
-        else if (strcmp(team->players[i].position, "CB") == 0 ||
-                 strcmp(team->players[i].position, "RB") == 0 ||
-                 strcmp(team->players[i].position, "LB") == 0 ||
-                 strcmp(team->players[i].position, "SB") == 0 ||
-                 strcmp(team->players[i].position, "WB") == 0) {
-            defenders++;
-        }
-        else if (strcmp(team->players[i].position, "CM") == 0 || 
-                 strcmp(team->players[i].position, "CD") == 0 || 
-                 strcmp(team->players[i].position, "AM") == 0 || 
-                 strcmp(team->players[i].position, "DM") == 0 ||
-                 strcmp(team->players[i].position, "RM") == 0 ||
-                 strcmp(team->players[i].position, "LM") == 0) {
-            middlefielders++;
-        }
-        else if (strcmp(team->players[i].position, "ST") == 0 ||
-                 strcmp(team->players[i].position, "CF") == 0 ||
-                 strcmp(team->players[i].position, "RW") == 0 ||
-                 strcmp(team->players[i].position, "LW") == 0 ||
-                 strcmp(team->players[i].position, "RF") == 0 ||
-                 strcmp(team->players[i].position, "LF") == 0) {
-            attackers++;
-        }
-        else {
-            unknown++;
-        }
-    }
-    //check if a symbol of the position of a player is not one known
-    if (unknown > 0) {
-        snprintf(error_detail, 256, "Role not known for %d player (use the standrd role)", unknown);
-        return TEAM_UNKNOWN_ROLE;
-    }
-    // check numbers player
-    if (team->numPlayers > 11) {
-        snprintf(error_detail, 256, "Numbers player: %d (max 11)", team->numPlayers);
-        return TEAM_TOO_MANY_PLAYERS;
-    }
-    if (team->numPlayers < 8) {
-        snprintf(error_detail, 256, "Numbers player: %d (min 8)", team->numPlayers);
-        return TEAM_TOO_FEW_PLAYERS;
-    }
-
-    // check goalkeeper
-    if (goalkeeper == 0) {
-        snprintf(error_detail, 256, "No goalkeeper in the team!");
-        return TEAM_NO_GOALKEEPER;
-    }
-    if (goalkeeper > 1) {
-        snprintf(error_detail, 256, "There are %d goalkeeper!", goalkeeper);
-        return TEAM_MULTIPLE_GOALKEEPERS;
-    }
-    //check if the formation make sense
-    if (!is_valid_formation(&team->formation)) {
-        snprintf(error_detail, 256, "Formation has invalid numbers (0-6 per role).");
-        return TEAM_INVALID_FORMATION;
-    }
-    // Check role-formation
-    if (team->formation.defence != defenders ||
-        team->formation.midfield != middlefielders ||
-        team->formation.attack != attackers) {
-        snprintf(error_detail, 256, "Roles are not conformed to the formation! Defenders in theory: %d found: %d, Miffledielders in theory: %d found: %d, Attackers in theory: %d found: %d",
-            team->formation.defence, defenders,
-            team->formation.midfield, middlefielders,
-            team->formation.attack, attackers
-        );
-        return TEAM_ROLES_MISMATCH;
-    }
-    //check if captain is a player of the team
-    if (team->captain && !is_player_in_team(team, team->captain)) {
-        snprintf(error_detail, 256, "Captain is not a declared player: %s", team->captain);
-        return TEAM_INVALID_CAPTAIN;
-    }
-    // 9. Check if the vice is a player of the team
-    if (team->viceCaptain && !is_player_in_team(team, team->viceCaptain)) {
-        snprintf(error_detail, 256, "Vice-captain is not a declared player: %s", team->viceCaptain);
-        return TEAM_INVALID_VICECAPTAIN;
-    }
-    // 10. check if coach and strategy are string
-    if (team->coach && !is_string(team->coach)) {
-        snprintf(error_detail, 256, "Coach must be a string.");
-        return TEAM_INVALID_COACH;
-    }
-    if (team->strategy && !is_string(team->strategy)) {
-        snprintf(error_detail, 256, "Strategy must be a string.");
-        return TEAM_INVALID_STRATEGY;
-    }
-    // ok no problems
-    strcpy(error_detail, "Valid team");
-    return TEAM_OK;
-}
-
-MatchValidationError validate_match(Match *match, SymbolTable *table, char *error_detail) {
-    // check if team exist
-    SymbolNode* homeNode = lookup_symbol(table, match->homeTeam, "TEAM");
-    SymbolNode* awayNode = lookup_symbol(table, match->awayTeam, "TEAM");
-    if (!homeNode) {
-        snprintf(error_detail, 256, "Home team not known: %s", match->homeTeam);
-        return MATCH_UNKNOWN_TEAM;
-    }
-    if (!awayNode) {
-        snprintf(error_detail, 256, "Away team not known: %s", match->awayTeam);
-        return MATCH_UNKNOWN_TEAM;
-    }
-
-    // Check two different team that play
-    if (strcmp(match->homeTeam, match->awayTeam) == 0) {
-        snprintf(error_detail, 256, "A team cannot play against himself %s", match->homeTeam);
-        return MATCH_SAME_TEAM;
-    }
-    //check if data is ok
-    if (match->date && !is_valid_date(match->date)) {
-        snprintf(error_detail, 256, "Date format invalid (should be YYYY-MM-DD) with existing month and days: %s", match->date);
-        return MATCH_INVALID_DATE;
-    }
-    // check if result is ok
-    if (match->result && !is_valid_result(match->result)) {
-        snprintf(error_detail, 256, "Result format invalid (should be X-Y and both non-negative): %s", match->result);
-        return MATCH_INVALID_RESULT;
-    }
-    // check scorers are player that exist
-    int home_scorers = 0, away_scorers = 0;
-    if (match->scorers[0] != NULL) { //check only if there is a goal
-        for (int i = 0; match->scorers[i] != NULL && i < MAX_SCORERS; i++) {
-            int found = 0;
-            //first search for homeplayer
-            Team* homeTeamPtr = homeNode->value.teamPtr;
-            for (int j = 0; j < homeTeamPtr->numPlayers; j++) {
-                if (strcmp(homeTeamPtr->players[j].name, match->scorers[i]) == 0) {
-                    home_scorers++;
-                    found = 1;
-                    break;
-                }
-            }
-            // then for away team
-            if (!found) {
-                Team* awayTeamPtr = awayNode->value.teamPtr;
-                for (int j = 0; j < awayTeamPtr->numPlayers; j++) {
-                    if (strcmp(awayTeamPtr->players[j].name, match->scorers[i]) == 0) {
-                        away_scorers++;
-                        found = 1;
-                        break;
-                    }
-                }
-            }
-            if (!found) {
-                snprintf(error_detail, 256, "Goaler is not a known player: %s", match->scorers[i]);
-                return MATCH_UNKNOWN_SCORER;
-            }
-        }
-    }
-    //ok
-    strcpy(error_detail, "Valid match");
-    return MATCH_OK;
 }
 
 // -------------------- TEAM -------------------------
@@ -699,16 +399,162 @@ void add_scorer(SymbolTable* table, const char* match_name, const char* scorer) 
     }
 }
 
-int is_string(const char* s) {
-    return s != NULL && strlen(s) > 0;
-}
-
-int is_valid_position(const char* s) {
-    if (!s) return 0;
-    // accetta solo due lettere, puoi cambiare se serve
-    return strlen(s) == 2 && isupper(s[0]) && isupper(s[1]);
-}
-
 void end_scorer_list(SymbolTable* table, const char* match_name) {
-    // Se non ti serve nulla, lascia vuota!
+    // Intenzionalmente vuota!
+}
+
+// ----------------- VALIDATION LOGIC ----------------
+
+TeamValidationError validate_team(Team *team, char *error_detail) {
+    int goalkeeper = 0, defenders = 0, middlefielders = 0, attackers = 0, unknown=0;
+    if (!is_non_empty_name(team->name)) {
+        snprintf(error_detail, 256, "Team name is empty.");
+        return TEAM_EMPTY_NAME;
+    }
+    if (!has_no_empty_players(team)) {
+        snprintf(error_detail, 256, "Some player names are empty.");
+        return TEAM_PLAYER_EMPTY_NAME;
+    }
+    for (int i = 0; i < team->numPlayers; i++) {
+        for (int j = 0; j < i; j++) {
+            if (strcmp(team->players[i].name, team->players[j].name) == 0) {
+                snprintf(error_detail, 256, "A player is a duplicate: %s", team->players[i].name);
+                return TEAM_DUPLICATE_PLAYER;
+            }
+        }
+        if (strcmp(team->players[i].position, "GK") == 0) goalkeeper++;
+        else if (strcmp(team->players[i].position, "CB") == 0 ||
+                 strcmp(team->players[i].position, "RB") == 0 ||
+                 strcmp(team->players[i].position, "LB") == 0 ||
+                 strcmp(team->players[i].position, "SB") == 0 ||
+                 strcmp(team->players[i].position, "WB") == 0) {
+            defenders++;
+        }
+        else if (strcmp(team->players[i].position, "CM") == 0 || 
+                 strcmp(team->players[i].position, "CD") == 0 || 
+                 strcmp(team->players[i].position, "AM") == 0 || 
+                 strcmp(team->players[i].position, "DM") == 0 ||
+                 strcmp(team->players[i].position, "RM") == 0 ||
+                 strcmp(team->players[i].position, "LM") == 0) {
+            middlefielders++;
+        }
+        else if (strcmp(team->players[i].position, "ST") == 0 ||
+                 strcmp(team->players[i].position, "CF") == 0 ||
+                 strcmp(team->players[i].position, "RW") == 0 ||
+                 strcmp(team->players[i].position, "LW") == 0 ||
+                 strcmp(team->players[i].position, "RF") == 0 ||
+                 strcmp(team->players[i].position, "LF") == 0) {
+            attackers++;
+        }
+        else {
+            unknown++;
+        }
+    }
+    if (unknown > 0) {
+        snprintf(error_detail, 256, "Role not known for %d player (use the standard role)", unknown);
+        return TEAM_UNKNOWN_ROLE;
+    }
+    if (team->numPlayers > 11) {
+        snprintf(error_detail, 256, "Numbers player: %d (max 11)", team->numPlayers);
+        return TEAM_TOO_MANY_PLAYERS;
+    }
+    if (team->numPlayers < 8) {
+        snprintf(error_detail, 256, "Numbers player: %d (min 8)", team->numPlayers);
+        return TEAM_TOO_FEW_PLAYERS;
+    }
+    if (goalkeeper == 0) {
+        snprintf(error_detail, 256, "No goalkeeper in the team!");
+        return TEAM_NO_GOALKEEPER;
+    }
+    if (goalkeeper > 1) {
+        snprintf(error_detail, 256, "There are %d goalkeeper!", goalkeeper);
+        return TEAM_MULTIPLE_GOALKEEPERS;
+    }
+    if (!is_valid_formation(&team->formation)) {
+        snprintf(error_detail, 256, "Formation has invalid numbers (0-6 per role).");
+        return TEAM_INVALID_FORMATION;
+    }
+    if (team->formation.defence != defenders ||
+        team->formation.midfield != middlefielders ||
+        team->formation.attack != attackers) {
+        snprintf(error_detail, 256, "Roles are not conformed to the formation! Defenders: %d, found: %d, Midfielders: %d, found: %d, Attackers: %d, found: %d",
+            team->formation.defence, defenders,
+            team->formation.midfield, middlefielders,
+            team->formation.attack, attackers
+        );
+        return TEAM_ROLES_MISMATCH;
+    }
+    if (team->captain && !is_player_in_team(team, team->captain)) {
+        snprintf(error_detail, 256, "Captain is not a declared player: %s", team->captain);
+        return TEAM_INVALID_CAPTAIN;
+    }
+    if (team->viceCaptain && !is_player_in_team(team, team->viceCaptain)) {
+        snprintf(error_detail, 256, "Vice-captain is not a declared player: %s", team->viceCaptain);
+        return TEAM_INVALID_VICECAPTAIN;
+    }
+    if (team->coach && !is_string(team->coach)) {
+        snprintf(error_detail, 256, "Coach must be a string.");
+        return TEAM_INVALID_COACH;
+    }
+    if (team->strategy && !is_string(team->strategy)) {
+        snprintf(error_detail, 256, "Strategy must be a string.");
+        return TEAM_INVALID_STRATEGY;
+    }
+    strcpy(error_detail, "Valid team");
+    return TEAM_OK;
+}
+
+MatchValidationError validate_match(Match *match, SymbolTable *table, char *error_detail) {
+    SymbolNode* homeNode = lookup_symbol(table, match->homeTeam, "TEAM");
+    SymbolNode* awayNode = lookup_symbol(table, match->awayTeam, "TEAM");
+    if (!homeNode) {
+        snprintf(error_detail, 256, "Home team not known: %s", match->homeTeam);
+        return MATCH_UNKNOWN_TEAM;
+    }
+    if (!awayNode) {
+        snprintf(error_detail, 256, "Away team not known: %s", match->awayTeam);
+        return MATCH_UNKNOWN_TEAM;
+    }
+    if (strcmp(match->homeTeam, match->awayTeam) == 0) {
+        snprintf(error_detail, 256, "A team cannot play against himself %s", match->homeTeam);
+        return MATCH_SAME_TEAM;
+    }
+    if (match->date && !is_valid_date(match->date)) {
+        snprintf(error_detail, 256, "Date format invalid (should be YYYY-MM-DD): %s", match->date);
+        return MATCH_INVALID_DATE;
+    }
+    if (match->result && !is_valid_result(match->result)) {
+        snprintf(error_detail, 256, "Result format invalid (should be X-Y and both non-negative): %s", match->result);
+        return MATCH_INVALID_RESULT;
+    }
+    int home_scorers = 0, away_scorers = 0;
+    if (match->scorers[0] != NULL) {
+        for (int i = 0; match->scorers[i] != NULL && i < MAX_SCORERS; i++) {
+            int found = 0;
+            Team* homeTeamPtr = homeNode->value.teamPtr;
+            for (int j = 0; j < homeTeamPtr->numPlayers; j++) {
+                if (strcmp(homeTeamPtr->players[j].name, match->scorers[i]) == 0) {
+                    home_scorers++;
+                    found = 1;
+                    break;
+                }
+            }
+            if (!found) {
+                Team* awayTeamPtr = awayNode->value.teamPtr;
+                for (int j = 0; j < awayTeamPtr->numPlayers; j++) {
+                    if (strcmp(awayTeamPtr->players[j].name, match->scorers[i]) == 0) {
+                        away_scorers++;
+                        found = 1;
+                        break;
+                    }
+                }
+            }
+            if (!found) {
+                snprintf(error_detail, 256, "Goaler is not a known player: %s", match->scorers[i]);
+                return MATCH_UNKNOWN_SCORER;
+            }
+        }
+    }
+    strcpy(error_detail, "Valid match");
+    return MATCH_OK;
 }
