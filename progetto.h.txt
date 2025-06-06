@@ -4,51 +4,56 @@
 #define MAX_PLAYERS 11
 #define MAX_SCORERS 10
 
+typedef struct {
+    char* name;
+    char* position;
+} Player;
+
+typedef struct {
+    int attack;
+    int midfield;
+    int defence;
+} Formation;
+
+typedef struct {
+    char* name;
+    Player players[MAX_PLAYERS];
+    int numPlayers;
+    Formation formation;
+    char* captain;
+    char* coach;
+    char* viceCaptain;
+    char* strategy;
+} Team;
+
+typedef struct {
+    char* stadium;
+    char* homeTeam;
+    char* awayTeam;
+    char* date;
+    char* time;
+    char* weather;
+    char* result;
+    char* referee;
+    char* scorers[MAX_SCORERS];
+} Match;
+
+typedef union {
+    Team* teamPtr;
+    Match* matchPtr;
+    void* ptr;
+} SymbolValue;
+
 typedef struct SymbolNode {
     char* name;
     char* type;
+    SymbolValue value;
     struct SymbolNode* next;
 } SymbolNode;
 
 typedef struct SymbolTable {
     SymbolNode* head;
 } SymbolTable;
-
-typedef struct{
-	char* name;
-	char* position;
-} Player;
-
-typedef struct{
-	int attack;
-	int midfield;
-	int defence;
-} Formation;
-
-
-typedef struct{
-	char* name;
-	struct Player players[MAX_PLAYERS];
-	struct Formation formation;
-    	char* captain;
-	char* coach;
-	char* viceCaptain;
-	char* goalkeeper;
-	char* formationMod;
-	char* strategy;
-} Team;
-
-typedef struct{
-	char* stadium;
-	char* homeTeam;
-	char* awayTeam;
-	char* date;
-	char* time;
-	char* weather;
-	char* result;
-	char* referee;
-	char* scorers[MAX_SCORERS];
-} Match;
 
 typedef enum {
     TEAM_OK = 0,
@@ -65,7 +70,8 @@ typedef enum {
     TEAM_INVALID_STRATEGY,
     TEAM_EMPTY_NAME,
     TEAM_PLAYER_EMPTY_NAME,
-    TEAM_INVALID_POSITION
+    TEAM_INVALID_POSITION,
+    TEAM_UNKNOWN_ROLE
 } TeamValidationError;
 
 typedef enum {
@@ -79,21 +85,60 @@ typedef enum {
     MATCH_NAME_NOT_UNIQUE
 } MatchValidationError;
 
-//team check
-TeamValidationError validate_team(Team *team, char *error_detail, SymbolTable *table);
+// Symbol Table management
+void initialize_symbol_table(SymbolTable* table);
+void add_symbol(SymbolTable* table, char* name, char* type, void* val);
+SymbolNode* lookup_symbol(SymbolTable* table, char* name, char* type);
+int delete_symbol(SymbolTable* table, char* name, char* type);
+void print_symbol_table(SymbolTable* table);
+void free_symbol_table(SymbolTable* table);
+
+// Getters
+Team* get_team_by_name(SymbolTable* table, const char* name);
+Match* get_match_by_name(SymbolTable* table, const char* name);
+Player* get_player_by_name(Team* team, const char* player_name);
+
+// Check functions
 int is_non_empty_name(const char* name);
-int is_team_name_unique(const char* name, SymbolTable* table);
-int is_valid_position(const char* pos);
-int is_player_in_team(Team* team, const char* player_name);
-int is_string(const char* val);
-int is_valid_formation(const Formation* f);
 int has_no_empty_players(Team* team);
-//match check
-MatchValidationError validate_match(Match *match, SymbolTable *table, char *error_detail);
+int is_team_name_unique(const char* name, SymbolTable* table);
+int is_match_name_unique(const char* name, SymbolTable* table);
+int is_player_in_team(Team* team, const char* player_name);
+int is_valid_formation(const Formation* f);
+int is_valid_position(const char* pos);
 int is_valid_date(const char* date);
 int is_valid_result(const char* result);
-int is_match_name_unique(const char* name, SymbolTable* table);
-//general
-Team* get_team_by_name(const char* name);
-Player* get_player_by_name(Team* team, const char* player_name);
-#endif
+int is_string(const char* val);
+
+// Team validation
+TeamValidationError validate_team(Team* team, char* error_detail);
+MatchValidationError validate_match(Match* match, SymbolTable* table, char* error_detail);
+
+// TEAM management
+void start_team(SymbolTable* table, const char* name);
+void end_team(SymbolTable* table, const char* name);
+void set_coach(SymbolTable* table, const char* team_name, const char* coach);
+void set_captain(SymbolTable* table, const char* team_name, const char* captain);
+void set_vicecaptain(SymbolTable* table, const char* team_name, const char* vicecaptain);
+void set_strategy(SymbolTable* table, const char* team_name, const char* strategy);
+void add_player_to_team(SymbolTable* table, const char* team_name, const char* player, const char* position);
+void set_formation(SymbolTable* table, const char* team_name, int def, int mid, int att);
+
+// MATCH management
+void start_match(SymbolTable* table, const char* name);
+void end_match(SymbolTable* table, const char* name);
+void set_stadium(SymbolTable* table, const char* match_name, const char* stadium);
+void set_home_team(SymbolTable* table, const char* match_name, const char* team_name);
+void set_away_team(SymbolTable* table, const char* match_name, const char* team_name);
+void set_match_date(SymbolTable* table, const char* match_name, const char* date);
+void set_match_time(SymbolTable* table, const char* match_name, const char* time);
+void set_weather(SymbolTable* table, const char* match_name, const char* weather);
+void set_referee(SymbolTable* table, const char* match_name, const char* referee);
+void set_result(SymbolTable* table, const char* match_name, const char* result);
+
+// SCORERS
+void start_scorer_list(SymbolTable* table, const char* match_name);
+void add_scorer(SymbolTable* table, const char* match_name, const char* scorer);
+void end_scorer_list(SymbolTable* table, const char* match_name);
+
+#endif // PROGETTO_H
