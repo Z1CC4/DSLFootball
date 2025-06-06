@@ -1,10 +1,11 @@
 %option noyywrap
+%option caseless
+
 %{
 #include <stdio.h>
 #include "dls-byson.tab.h"
 int TokenCont=0;
 %}
-
 
 digit    [0-9]
 letter   [a-zA-Z]
@@ -13,7 +14,7 @@ id       {letter}({letter}|{digit})*
 
 %%
 
-[ \t\n]                 { /* skip whitespace */ }
+[ \t\r\n]+               { /* ignora spazi e newline */ }
 
 "Team"                  return TEAM;
 "Coach"                 return COACH;
@@ -39,17 +40,28 @@ id       {letter}({letter}|{digit})*
 "="                     return EQUAL; 
 "-"                     return HYPHEN; 
 ";"                     return SEMICOLON; 
-","                     return COMMA; 
-"\["                    return LSQUARE; 
-"\]"                    return RSQUARE; 
+","                     return COMMA;
+"\\["                   return LSQUARE; 
+"\\]"                   return RSQUARE; 
+"\""                   return QUOTE;
 
 [A-Z]{2}                return POSITIONVAL; 
-{id}                    return VAR; 
+"[0-9]{4}-[0-9]{2}-[0-9]{2}" return DATESTR; 
+\"[^\"]*\" {
+    int len = yyleng - 2;
+    char* tmp = (char*)malloc(len + 1);
+    strncpy(tmp, yytext + 1, len);
+    tmp[len] = '\0';
+    yylval.str = tmp;
+    return STRING;
+}
 
-[0-9]+                  return NUMBER; 
-\"[0-9]{4}-[0-9]{2}-[0-9]{2}\" return DATESTR; 
-\"[^\"]*\"              return STRING; 
 
-.                       { printf("Unknown character: %s\n", yytext); }
+[0-9]+                  return NUMBER;
+
+.                       { 
+    printf("Errore lessicale: carattere sconosciuto '%s'\n", yytext); 
+    return -1;
+}
 
 %%
