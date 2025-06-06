@@ -558,3 +558,80 @@ MatchValidationError validate_match(Match *match, SymbolTable *table, char *erro
     strcpy(error_detail, "Valid match");
     return MATCH_OK;
 }
+
+
+
+int hasPlayer(Team* team, const char* name) {
+    if (!team || !name) return 0;
+    for (int i = 0; i < team->numPlayers; i++) {
+        if (strcmp(team->players[i].name, name) == 0) return 1;
+    }
+    return 0;
+}
+
+int hasCaptain(Team* team, const char* name) {
+    if (!team || !name || !team->captain) return 0;
+    return strcmp(team->captain, name) == 0;
+}
+
+int hasFormation(Team* team, Formation formation) {
+    if (!team) return 0;
+    return team->formation.defence == formation.defence &&
+           team->formation.midfield == formation.midfield &&
+           team->formation.attack == formation.attack;
+}
+
+int hasCoach(Team* team, const char* coachName) {
+    if (!team || !coachName || !team->coach) return 0;
+    return strcmp(team->coach, coachName) == 0;
+}
+
+int hasViceCaptain(Team* team, const char* viceCaptainName) {
+    if (!team || !viceCaptainName || !team->viceCaptain) return 0;
+    return strcmp(team->viceCaptain, viceCaptainName) == 0;
+}
+
+int hasStrategy(Team* team, const char* strategy) {
+    if (!team || !strategy || !team->strategy) return 0;
+    return strcmp(team->strategy, strategy) == 0;
+}
+
+// -------- MATCH "HAS" FUNCTIONS --------
+
+int hasStadium(Match* match, const char* name) {
+    if (!match || !name || !match->stadium) return 0;
+    return strcmp(match->stadium, name) == 0;
+}
+
+int hasDate(Match* match, const char* date) {
+    if (!match || !date || !match->date) return 0;
+    return strcmp(match->date, date) == 0;
+}
+
+int hasTime(Match* match, const char* time) {
+    if (!match || !time || !match->time) return 0;
+    return strcmp(match->time, time) == 0;
+}
+
+int hasWeather(Match* match, const char* weather) {
+    if (!match || !weather || !match->weather) return 0;
+    return strcmp(match->weather, weather) == 0;
+}
+
+int hasResult(Match* match, const char* result) {
+    if (!match || !result || !match->result) return 0;
+    return strcmp(match->result, result) == 0;
+}
+
+int hasReferee(Match* match, const char* referee) {
+    if (!match || !referee || !match->referee) return 0;
+    return strcmp(match->referee, referee) == 0;
+}
+
+int hasScorer(Match* match, const char* scorer) {
+    if (!match || !scorer) return 0;
+    for (int i = 0; i < MAX_SCORERS && match->scorers[i] != NULL; i++) {
+        if (strcmp(match->scorers[i], scorer) == 0) return 1;
+    }
+    return 0;
+}
