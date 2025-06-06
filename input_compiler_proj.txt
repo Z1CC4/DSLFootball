@@ -10,7 +10,7 @@ Team "Juventus" {
     Player "Chiesa" position "RW";
     Player "Vlahovic" position "ST";
     Player "Kostic" position "LW";
-    Formation 4-4-3;
+    Formation 4-3-3;
     Coach = "Allegri";
     Captain = "Buffon";
     Vicecaptain = "Chiellini";
@@ -51,5 +51,7 @@ Match "Day 1 First Match" {
     Scorers = ["Vlahovic", "Lukaku"];
     Referee = "Rocchi";
 }
-
-
+hasStadium("Day 1 First Match", "Allianz Stadium");
+hasStadium("Day 1 First Match", "San Siro");
+setStadium("Day 1 First Match", "San Siro");
+hasStadium("Day 1 First Match", "San Siro");
