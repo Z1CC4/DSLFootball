@@ -85,6 +85,23 @@ typedef enum {
     MATCH_NAME_NOT_UNIQUE
 } MatchValidationError;
 
+typedef enum {
+    VALID = 0,
+    PLAYER_INVALID_NAME,
+    PLAYER_INVALID_ROLE,
+    COACH_INVALID_NAME,
+    REFEREE_INVALID_NAME,
+    TEAM_INVALID_NAME,
+    TEAM_INVALID_STRATEGY,
+    MATCH_INVALID_STADIUM,
+    MATCH_INVALID_HOME_TEAM,
+    MATCH_INVALID_AWAY_TEAM,
+    MATCH_INVALID_WEATHER,
+    SCORER_INVALID_NAME
+} ValidationResult;
+
+int is_alpha_string(const char *str);
+
 // Symbol Table management
 void initialize_symbol_table(SymbolTable* table);
 void add_symbol(SymbolTable* table, char* name, char* type, void* val);
@@ -140,5 +157,13 @@ void set_result(SymbolTable* table, const char* match_name, const char* result);
 void start_scorer_list(SymbolTable* table, const char* match_name);
 void add_scorer(SymbolTable* table, const char* match_name, const char* scorer);
 void end_scorer_list(SymbolTable* table, const char* match_name);
+
+//VALIDATION
+ValidationResult validate_player(Player *player, char *error_detail);
+ValidationResult validate_coach(Coach *coach, char *error_detail);
+ValidationResult validate_referee(Referee *referee, char *error_detail);
+ValidationResult validate_team(Team *team, char *error_detail);
+ValidationResult validate_match(Match *match, char *error_detail);
+ValidationResult validate_scorer(Scorer *scorer, char *error_detail);
 
 #endif // PROGETTO_H
