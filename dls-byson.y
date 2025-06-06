@@ -14,6 +14,7 @@ SymbolTable symbol_table;
 const char* current_team_name = NULL;
 const char* current_match_name = NULL;
 %}
+
 %union {
     char* str;
     int num;
@@ -21,22 +22,26 @@ const char* current_match_name = NULL;
 
 %token TEAM MATCH PLAYER FORMATION POSITION CAPTAIN VICECAPTAIN COACH STRATEGY
 %token STADIUM HOMETEAM AWAYTEAM DATE TIME WEATHER RESULT SCORERS REFEREE
-%token LBRACE RBRACE EQUAL HYPHEN SEMICOLON COMMA LSQUARE RSQUARE
-%token <str> STRING VAR DATESTR TIMESTR POSITIONVAL STRATEGYVAL
+%token LBRACE RBRACE EQUAL HYPHEN SEMICOLON COMMA LSQUARE RSQUARE QUOTE
+%token <str> STRING DATESTR TIMESTR POSITIONVAL STRATEGYVAL
 %token <num> NUMBER
+
 %%
 
 program : blocks;
 
 blocks : block blocks
-       | block;
+       | block
+       | error { yyerror("Errore di sintassi generico."); YYABORT; };
 
 block : team_declaration
       | match_declaration;
 
 team_declaration:
-    TEAM STRING LBRACE team_body RBRACE {
+    TEAM STRING LBRACE {
+        current_team_name = $2;
         start_team(&symbol_table, $2);
+    } team_body RBRACE {
         end_team(&symbol_table, $2);
         char error_detail[256];
         Team *team = get_team_by_name(&symbol_table, $2);
@@ -52,8 +57,10 @@ team_declaration:
     };
 
 match_declaration:
-    MATCH STRING LBRACE match_body RBRACE {
+    MATCH STRING LBRACE {
+        current_match_name = $2;
         start_match(&symbol_table, $2);
+     } match_body RBRACE {
         end_match(&symbol_table, $2);
         char error_detail[256];
         Match *match = get_match_by_name(&symbol_table, $2);
@@ -77,29 +84,29 @@ team_attribute:
     FORMATION NUMBER HYPHEN NUMBER HYPHEN NUMBER SEMICOLON {
         set_formation(&symbol_table, current_team_name, $2, $4, $6);
     }
-  | COACH EQUAL VAR SEMICOLON {
+  | COACH EQUAL STRING SEMICOLON {
         if (!is_string($3))
             yyerror("Coach must be a string");
         set_coach(&symbol_table, current_team_name, $3);
     }
-  | CAPTAIN EQUAL VAR SEMICOLON {
+  | CAPTAIN EQUAL STRING SEMICOLON {
         Team* team = get_team_by_name(&symbol_table, current_team_name);
         if (!is_player_in_team(team, $3))
             yyerror("Captain must be a declared player");
         set_captain(&symbol_table, current_team_name, $3);
     }
-  | VICECAPTAIN EQUAL VAR SEMICOLON {
+  | VICECAPTAIN EQUAL STRING SEMICOLON {
         Team* team = get_team_by_name(&symbol_table, current_team_name);
         if (!is_player_in_team(team, $3))
             yyerror("Vice-captain must be a declared player");
         set_vicecaptain(&symbol_table, current_team_name, $3);
     }
-  | STRATEGY EQUAL VAR SEMICOLON {
+  | STRATEGY EQUAL STRING SEMICOLON {
         if (!is_string($3))
             yyerror("Strategy must be a string");
         set_strategy(&symbol_table, current_team_name, $3);
     }
-  | PLAYER VAR POSITION POSITIONVAL SEMICOLON {
+  | PLAYER STRING POSITION POSITIONVAL SEMICOLON {
         if (!is_non_empty_name($2))
             yyerror("Player name cannot be empty");
         if (!is_valid_position($4))
@@ -154,10 +161,10 @@ match_attribute:
   ;
 
 scorer_list:
-    scorer_list COMMA VAR {
+    scorer_list COMMA STRING {
         add_scorer(&symbol_table, current_match_name, $3);
     }
-  | VAR {
+  | STRING {
         start_scorer_list(&symbol_table, current_match_name);
         add_scorer(&symbol_table, current_match_name, $1);
     }
@@ -169,5 +176,9 @@ scorer_list:
 
 int main() {
     initialize_symbol_table(&symbol_table);
+    yyparse();
+    printf("Input accettato.\n");
     return 0;
 }
+
+int yywrap() { return 1; }
