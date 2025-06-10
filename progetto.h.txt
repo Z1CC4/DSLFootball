@@ -158,4 +158,5 @@ int hasResult(Match* match, const char* result);
 int hasReferee(Match* match, const char* referee);
 int hasScorer(Match* match, const char* scorer);
 
+void write_json_summary_to_file(SymbolTable* table, const char* filename);
 #endif // PROGETTO_H
