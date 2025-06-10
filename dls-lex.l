@@ -14,8 +14,8 @@ id       {letter}({letter}|{digit})*
 
 %%
 
-[ \t\r\n]+               { /* ignora spazi e newline */ }
-
+[ \t\r\n]+               /* to eliminate new space and new line*/
+						 /* keywords for our specific language*/
 "Team"                  return TEAM;
 "Coach"                 return COACH;
 "Formation"             return FORMATION; 
@@ -76,6 +76,7 @@ hasResult        return HASRESULT;
 hasReferee       return HASREFEREE;
 hasScorer        return HASSCORER;
 
+	/* datestring variable */
 [0-9]{4}-[0-9]{2}-[0-9]{2} {
     int len = yyleng;
     char* tmp = (char*)malloc(len + 1);
@@ -84,6 +85,7 @@ hasScorer        return HASSCORER;
     yylval.str = tmp;
     return DATESTR;
 }
+	/* string variable, we remove hte "" when we save the attribute */
 \"[^\"]*\" {
     int len = yyleng - 2;
     char* tmp = (char*)malloc(len + 1);
@@ -94,10 +96,9 @@ hasScorer        return HASSCORER;
 }
 
 [0-9]+    { yylval.num = atoi(yytext); return NUMBER; }
-
+	/* all the charachter not above are consider to be n error and therefore it send a message error */
 .                       { 
-    printf("Errore lessicale: carattere sconosciuto '%s'\n", yytext); 
+    printf("Lexical erorr, charachter not known '%s'\n", yytext); 
     return -1;
 }
-
 %%
