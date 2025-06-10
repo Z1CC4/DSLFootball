@@ -635,3 +635,78 @@ int hasScorer(Match* match, const char* scorer) {
     }
     return 0;
 }
+
+void write_json_summary_to_file(SymbolTable* table, const char* filename) {
+    FILE* f = fopen(filename, "w");
+    if (!f) {
+        fprintf(stderr, "Errore nell'apertura del file %s\n", filename);
+        return;
+    }
+
+    fprintf(f, "{\n");
+
+    // --- TEAMS ---
+    fprintf(f, "  \"teams\": [\n");
+    SymbolNode* current = table->head;
+    int first_team = 1;
+    while (current) {
+        if (strcmp(current->type, "TEAM") == 0) {
+            Team* t = current->value.teamPtr;
+            if (!first_team) fprintf(f, ",\n");
+            fprintf(f, "    {\n");
+            fprintf(f, "      \"name\": \"%s\",\n", t->name);
+            fprintf(f, "      \"coach\": \"%s\",\n", t->coach ? t->coach : "");
+            fprintf(f, "      \"captain\": \"%s\",\n", t->captain ? t->captain : "");
+            fprintf(f, "      \"viceCaptain\": \"%s\",\n", t->viceCaptain ? t->viceCaptain : "");
+            fprintf(f, "      \"strategy\": \"%s\",\n", t->strategy ? t->strategy : "");
+            fprintf(f, "      \"formation\": \"%d-%d-%d\",\n", t->formation.defence, t->formation.midfield, t->formation.attack);
+
+            // Giocatori
+            fprintf(f, "      \"players\": [\n");
+            for (int i = 0; i < t->numPlayers; i++) {
+                fprintf(f, "        { \"name\": \"%s\", \"position\": \"%s\" }", t->players[i].name, t->players[i].position);
+                if (i < t->numPlayers - 1) fprintf(f, ",");
+                fprintf(f, "\n");
+            }
+            fprintf(f, "      ]\n");
+            fprintf(f, "    }");
+            first_team = 0;
+        }
+        current = current->next;
+    }
+    fprintf(f, "\n  ],\n");
+
+    // --- MATCHES ---
+    fprintf(f, "  \"matches\": [\n");
+    current = table->head;
+    int first_match = 1;
+    while (current) {
+        if (strcmp(current->type, "MATCH") == 0) {
+            Match* m = current->value.matchPtr;
+            if (!first_match) fprintf(f, ",\n");
+            fprintf(f, "    {\n");
+            fprintf(f, "      \"name\": \"%s\",\n", current->name);
+            fprintf(f, "      \"stadium\": \"%s\",\n", m->stadium ? m->stadium : "");
+            fprintf(f, "      \"homeTeam\": \"%s\",\n", m->homeTeam ? m->homeTeam : "");
+            fprintf(f, "      \"awayTeam\": \"%s\",\n", m->awayTeam ? m->awayTeam : "");
+            fprintf(f, "      \"date\": \"%s\",\n", m->date ? m->date : "");
+            fprintf(f, "      \"time\": \"%s\",\n", m->time ? m->time : "");
+            fprintf(f, "      \"weather\": \"%s\",\n", m->weather ? m->weather : "");
+            fprintf(f, "      \"result\": \"%s\",\n", m->result ? m->result : "");
+            fprintf(f, "      \"referee\": \"%s\",\n", m->referee ? m->referee : "");
+            fprintf(f, "      \"scorers\": [");
+            for (int i = 0; i < MAX_SCORERS && m->scorers[i]; i++) {
+                if (i > 0) fprintf(f, ", ");
+                fprintf(f, "\"%s\"", m->scorers[i]);
+            }
+            fprintf(f, "]\n");
+            fprintf(f, "    }");
+            first_match = 0;
+        }
+        current = current->next;
+    }
+    fprintf(f, "\n  ]\n");
+
+    fprintf(f, "}\n");
+    fclose(f);
+}
