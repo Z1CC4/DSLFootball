@@ -1,0 +1,60 @@
+{
+  "teams": [
+    {
+      "name": "Inter",
+      "coach": "Inzaghi",
+      "captain": "Handanovic",
+      "viceCaptain": "Barella",
+      "strategy": "CounterAttack",
+      "formation": "3-5-2",
+      "players": [
+        { "name": "Handanovic", "position": "GK" },
+        { "name": "Bastoni", "position": "CB" },
+        { "name": "DeVrij", "position": "CB" },
+        { "name": "Skriniar", "position": "CB" },
+        { "name": "Barella", "position": "CM" },
+        { "name": "Calhanoglu", "position": "CM" },
+        { "name": "Brozovic", "position": "CM" },
+        { "name": "Mkhitaryan", "position": "RM" },
+        { "name": "Dimarco", "position": "LM" },
+        { "name": "Martinez", "position": "ST" },
+        { "name": "Lukaku", "position": "ST" }
+      ]
+    },
+    {
+      "name": "Juventus",
+      "coach": "Allegri",
+      "captain": "Buffon",
+      "viceCaptain": "Chiellini",
+      "strategy": "HighPress",
+      "formation": "4-3-3",
+      "players": [
+        { "name": "Buffon", "position": "GK" },
+        { "name": "Chiellini", "position": "CB" },
+        { "name": "Danilo", "position": "RB" },
+        { "name": "Sandro", "position": "LB" },
+        { "name": "Gatti", "position": "CB" },
+        { "name": "Locatelli", "position": "CM" },
+        { "name": "Pogba", "position": "CM" },
+        { "name": "Fagioli", "position": "CM" },
+        { "name": "Chiesa", "position": "RW" },
+        { "name": "Vlahovic", "position": "ST" },
+        { "name": "Kostic", "position": "LW" }
+      ]
+    }
+  ],
+  "matches": [
+    {
+      "name": "Day 1 First Match",
+      "stadium": "San Siro",
+      "homeTeam": "Juventus",
+      "awayTeam": "Inter",
+      "date": "2023-11-06",
+      "time": "18:00",
+      "weather": "Sunny",
+      "result": "1-1",
+      "referee": "Rocchi",
+      "scorers": ["Vlahovic", "Lukaku"]
+    }
+  ]
+}
