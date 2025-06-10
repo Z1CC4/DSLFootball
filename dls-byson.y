@@ -11,6 +11,7 @@ void yyerror(const char *s) {
 
 int yylex(void);
 SymbolTable symbol_table;
+// --- used for the function, to know which team to change---
 const char* current_team_name = NULL;
 const char* current_match_name = NULL;
 %}
@@ -19,10 +20,10 @@ const char* current_match_name = NULL;
     char* str;
     int num;
 }
-
+// --- tokens from l---
 %token TEAM MATCH PLAYER FORMATION POSITION CAPTAIN VICECAPTAIN COACH STRATEGY
 %token STADIUM HOMETEAM AWAYTEAM DATE TIME WEATHER RESULT SCORERS REFEREE
-%token LBRACE RBRACE EQUAL HYPHEN SEMICOLON COMMA LSQUARE RSQUARE 
+%token LBRACE RBRACE EQUAL HYPHEN SEMICOLON COMMA LSQUARE RSQUARE LPAREN RPAREN
 %token <str> STRING DATESTR
 %token <num> NUMBER
 
@@ -31,9 +32,10 @@ const char* current_match_name = NULL;
 
 %token HASPLAYER HASCAPTAIN HASFORMATION HASCOACH HASVICECAPTAIN HASSTRATEGY
 %token HASSTADIUM HASDATE HASTIME HASWEATHER HASRESULT HASREFEREE HASSCORER
-%token LPAREN RPAREN
 
 %%
+
+// --- the programm is composed by blocks, they can be teamdeclaration, matchdeclaraction or operationdeclaration, more we have an erorr so that if it encounter some unexpected  carachter it goes in erorr ---
 
 program : blocks;
 
@@ -48,7 +50,7 @@ block :
     | match_declaration
     | operation_declaration
     ;
-
+// --- we create the team, end before closing it we set the attrbites of the various elements, we then do the checks for the semantic (es no more 11 player), and for each we have a specific erorr message ---
 team_declaration:
     TEAM STRING LBRACE {
         current_team_name = $2;
@@ -58,7 +60,7 @@ team_declaration:
         char error_detail[256];
         Team *team = get_team_by_name(&symbol_table, $2);
         if (!team) {
-            yyerror("Errore interno: team non trovato dopo la creazione!");
+            yyerror("Internal error, team not found in the creation!");
             YYABORT;
         }
         TeamValidationError err = validate_team(team, error_detail);
@@ -68,7 +70,7 @@ team_declaration:
         }
     }
     ;
-
+// --- same thing from team ---
 match_declaration:
     MATCH STRING LBRACE {
         current_match_name = $2;
@@ -93,7 +95,7 @@ team_body:
       team_attribute team_body
     | team_attribute
     ;
-
+// --- set the attribute of the team and then of the match---
 team_attribute:
     FORMATION NUMBER HYPHEN NUMBER HYPHEN NUMBER SEMICOLON {
         set_formation(&symbol_table, current_team_name, $2, $4, $6);
@@ -187,7 +189,7 @@ scorer_list:
     }
     ;
 
-// ----- OPERATIONS: SET & HAS -----
+// ----- OPERATIONS: SET and HAS -----
 
 operation_declaration :
       set_captain_fun
@@ -195,7 +197,6 @@ operation_declaration :
     | set_vicecaptain_fun
     | set_strategy_fun
     | set_formation_fun
-
     | set_stadium_fun
     | set_hometeam_fun
     | set_awayteam_fun
@@ -204,14 +205,12 @@ operation_declaration :
     | set_weather_fun
     | set_referee_fun
     | set_result_fun
-
     | has_player_fun
     | has_captain_fun
     | has_formation_fun
     | has_coach_fun
     | has_vicecaptain_fun
     | has_strategy_fun
-
     | has_stadium_fun
     | has_date_fun
     | has_time_fun
@@ -288,7 +287,6 @@ set_result_fun : SETRESULT LPAREN STRING COMMA STRING RPAREN SEMICOLON {
     free($3); free($5);
 };
 
-// --- HAS FUNCTIONS ---
 has_player_fun : HASPLAYER LPAREN STRING COMMA STRING RPAREN SEMICOLON {
     Team* t = get_team_by_name(&symbol_table, $3);
     int found = hasPlayer(t, $5);
@@ -327,7 +325,6 @@ has_strategy_fun : HASSTRATEGY LPAREN STRING COMMA STRING RPAREN SEMICOLON {
     free($3); free($5);
 };
 
-// --- HAS MATCH FUNCTIONS ---
 has_stadium_fun : HASSTADIUM LPAREN STRING COMMA STRING RPAREN SEMICOLON {
     Match* m = get_match_by_name(&symbol_table, $3);
     int found = hasStadium(m, $5);
@@ -372,7 +369,7 @@ has_scorer_fun : HASSCORER LPAREN STRING COMMA STRING RPAREN SEMICOLON {
 };
 
 %%
-
+// --- in the main we create the symbol table (so that we dont need global variable) and after being parsed if there are no error we let out a positive message---
 int main() {
     initialize_symbol_table(&symbol_table);
     yyparse();
