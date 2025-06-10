@@ -374,6 +374,7 @@ int main() {
     initialize_symbol_table(&symbol_table);
     yyparse();
     printf("Input accettato.\n");
+    write_json_summary_to_file(&symbol_table, "output.json");
     return 0;
 }
 
