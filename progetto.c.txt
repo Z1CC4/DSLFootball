@@ -4,8 +4,6 @@
 #include <ctype.h>
 #include "progetto.h"
 
-// ---------------------- UTILITY ----------------------
-
 int is_alpha_string(const char *str) {
     for (int i = 0; str[i] != '\0'; i++) {
         if (!isalpha(str[i]) && str[i] != ' ') {
@@ -19,7 +17,6 @@ int is_non_empty_name(const char* name) {
     return name != NULL && strlen(name) > 0;
 }
 
-// Controlla che tutti i giocatori abbiano il nome
 int has_no_empty_players(Team* team) {
     for (int i = 0; i < team->numPlayers; i++) {
         if (!is_non_empty_name(team->players[i].name))
@@ -63,17 +60,26 @@ int is_valid_formation(const Formation* f) {
     return 1;
 }
 
+// this function checks if the date is written in a valid format
 int is_valid_date(const char* date) {
     if (!date || strlen(date) != 10) return 0;
+    // checks the year digits
     if (!(isdigit(date[0]) && isdigit(date[1]) && isdigit(date[2]) && isdigit(date[3]))) return 0;
     if (date[4] != '-') return 0;
+    // checks the month digits
     if (!(isdigit(date[5]) && isdigit(date[6]))) return 0;
     if (date[7] != '-') return 0;
+    // checks the day digits
     if (!(isdigit(date[8]) && isdigit(date[9]))) return 0;
+    
+    // convert string digits to actual numbers
     int year = (date[0]-'0')*1000 + (date[1]-'0')*100 + (date[2]-'0')*10 + (date[3]-'0');
     int month = (date[5]-'0')*10 + (date[6]-'0');
     int day = (date[8]-'0')*10 + (date[9]-'0');
+    
     if (month < 1 || month > 12) return 0;
+    
+    // calculate max days for this month
     int max_days = 31;
     if (month == 2) {
         int leap = (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
@@ -100,12 +106,15 @@ int is_valid_position(const char* s) {
     return strlen(s) == 2 && isupper(s[0]) && isupper(s[1]);
 }
 
-// ------------------- SYMBOL TABLE -------------------
 
+// the symbol table is a linked list in order to obtain a dynamic approach
+// sets up an empty symbol table by making head point to NULL
 void initialize_symbol_table(SymbolTable* table) {
     table->head = NULL;
 }
 
+// adds a new symbol to the front of the linked list
+// handles team and match types specially
 void add_symbol(SymbolTable* table, char* name, char* type, void* val){
     SymbolNode* newNode = malloc(sizeof(SymbolNode));
     if(!newNode){
@@ -115,6 +124,7 @@ void add_symbol(SymbolTable* table, char* name, char* type, void* val){
     newNode->name = strdup(name);
     newNode->type = strdup(type);
     newNode->next = table->head;
+    
     if(strcmp(type, "TEAM") == 0)
         newNode->value.teamPtr = (Team*)val;
     else if(strcmp(type, "MATCH") == 0)
@@ -124,6 +134,8 @@ void add_symbol(SymbolTable* table, char* name, char* type, void* val){
     table->head = newNode;
 }
 
+// searches through the list for a symbol with matching name and type
+// returns pointer to the node if found, null otherwise
 SymbolNode* lookup_symbol(SymbolTable* table, char* name, char* type){
     SymbolNode* current = table->head;
     while(current){
@@ -135,6 +147,8 @@ SymbolNode* lookup_symbol(SymbolTable* table, char* name, char* type){
     return NULL;
 }
 
+// removes a symbol from the table and frees its memory
+// checks if it's the first node or somewhere in the middle
 int delete_symbol(SymbolTable* table, char* name, char* type){
     if(table->head==NULL){
         printf("The table is empty.\n");
@@ -142,6 +156,8 @@ int delete_symbol(SymbolTable* table, char* name, char* type){
     }
     SymbolNode* current = table->head;
     SymbolNode* previous = NULL;
+    
+    // handle deletion of first node
     if(strcmp(table->head->name, name)==0 && strcmp(table->head->type, type)==0){
         table->head = current->next;  
         free(current->name);
@@ -150,6 +166,8 @@ int delete_symbol(SymbolTable* table, char* name, char* type){
         printf("Successful deletion!\n");
         return 1;
     }
+    
+    // search through rest of the list
     current = table->head->next;
     previous = table->head;
     while(current){
@@ -168,6 +186,7 @@ int delete_symbol(SymbolTable* table, char* name, char* type){
     return 0;
 }
 
+// prints out all the symbols in the table for debugging
 void print_symbol_table(SymbolTable* table) {
     SymbolNode* current = table->head;
     printf("Symbol Table:\n");
@@ -177,6 +196,7 @@ void print_symbol_table(SymbolTable* table) {
     }
 }
 
+// cleans up all allocated memory when you're done with the table
 void free_symbol_table(SymbolTable* table) {
     SymbolNode* current = table->head;
     while (current) {
@@ -188,7 +208,6 @@ void free_symbol_table(SymbolTable* table) {
     }
     table->head = NULL;
 }
-
 Team* get_team_by_name(SymbolTable* table, const char* name) {
     SymbolNode* node = lookup_symbol(table, (char*)name, "TEAM");
     if (node)
@@ -203,7 +222,6 @@ Match* get_match_by_name(SymbolTable* table, const char* name) {
     return NULL;
 }
 
-// -------------------- TEAM -------------------------
 
 void start_team(SymbolTable* table, const char* name) {
     Team* team = malloc(sizeof(Team));
@@ -216,6 +234,7 @@ void start_team(SymbolTable* table, const char* name) {
     team->formation.attack = 0;
     team->formation.midfield = 0;
     team->formation.defence = 0;
+    
     for (int i = 0; i < MAX_PLAYERS; ++i) {
         team->players[i].name = NULL;
         team->players[i].position = NULL;
@@ -284,7 +303,6 @@ void set_formation(SymbolTable* table, const char* team_name, int def, int mid, 
     }
 }
 
-// -------------------- MATCH ------------------------
 
 void start_match(SymbolTable* table, const char* name) {
     Match* match = malloc(sizeof(Match));
@@ -296,6 +314,7 @@ void start_match(SymbolTable* table, const char* name) {
     match->weather = NULL;
     match->result = NULL;
     match->referee = NULL;
+    
     for (int i = 0; i < MAX_SCORERS; ++i) match->scorers[i] = NULL;
     add_symbol(table, (char*)name, "MATCH", match);
 }
@@ -375,7 +394,6 @@ void set_result(SymbolTable* table, const char* match_name, const char* result) 
     }
 }
 
-// ------------------- SCORERS -----------------------
 
 void start_scorer_list(SymbolTable* table, const char* match_name) {
     Match* match = get_match_by_name(table, match_name);
@@ -400,25 +418,31 @@ void add_scorer(SymbolTable* table, const char* match_name, const char* scorer) 
 }
 
 
-// ----------------- VALIDATION LOGIC ----------------
-
+// this function does everything for the team validation
 TeamValidationError validate_team(Team *team, char *error_detail) {
     int goalkeeper = 0, defenders = 0, middlefielders = 0, attackers = 0, unknown=0;
+    
     if (!is_non_empty_name(team->name)) {
         snprintf(error_detail, 256, "Team name is empty.");
         return TEAM_EMPTY_NAME;
     }
+    
     if (!has_no_empty_players(team)) {
         snprintf(error_detail, 256, "Some player names are empty.");
         return TEAM_PLAYER_EMPTY_NAME;
     }
+    
+    // counts players by position and look for duplicates at the same time
     for (int i = 0; i < team->numPlayers; i++) {
+        // here it checks for duplicate players
         for (int j = 0; j < i; j++) {
             if (strcmp(team->players[i].name, team->players[j].name) == 0) {
                 snprintf(error_detail, 256, "A player is a duplicate: %s", team->players[i].name);
                 return TEAM_DUPLICATE_PLAYER;
             }
         }
+        
+        // sorts players into their position
         if (strcmp(team->players[i].position, "GK") == 0) goalkeeper++;
         else if (strcmp(team->players[i].position, "CB") == 0 ||
                  strcmp(team->players[i].position, "RB") == 0 ||
@@ -447,10 +471,12 @@ TeamValidationError validate_team(Team *team, char *error_detail) {
             unknown++;
         }
     }
+    
     if (unknown > 0) {
         snprintf(error_detail, 256, "Role not known for %d player (use the standard role)", unknown);
         return TEAM_UNKNOWN_ROLE;
     }
+    
     if (team->numPlayers > 11) {
         snprintf(error_detail, 256, "Numbers player: %d (max 11)", team->numPlayers);
         return TEAM_TOO_MANY_PLAYERS;
@@ -459,6 +485,7 @@ TeamValidationError validate_team(Team *team, char *error_detail) {
         snprintf(error_detail, 256, "Numbers player: %d (min 8)", team->numPlayers);
         return TEAM_TOO_FEW_PLAYERS;
     }
+    
     if (goalkeeper == 0) {
         snprintf(error_detail, 256, "No goalkeeper in the team!");
         return TEAM_NO_GOALKEEPER;
@@ -467,10 +494,13 @@ TeamValidationError validate_team(Team *team, char *error_detail) {
         snprintf(error_detail, 256, "There are %d goalkeeper!", goalkeeper);
         return TEAM_MULTIPLE_GOALKEEPERS;
     }
+    
     if (!is_valid_formation(&team->formation)) {
         snprintf(error_detail, 256, "Formation has invalid numbers (0-6 per role).");
         return TEAM_INVALID_FORMATION;
     }
+    
+    // make sure the formation actually matches the players we have
     if (team->formation.defence != defenders ||
         team->formation.midfield != middlefielders ||
         team->formation.attack != attackers) {
@@ -481,29 +511,36 @@ TeamValidationError validate_team(Team *team, char *error_detail) {
         );
         return TEAM_ROLES_MISMATCH;
     }
+    
     if (team->captain && !is_player_in_team(team, team->captain)) {
         snprintf(error_detail, 256, "Captain is not a declared player: %s", team->captain);
         return TEAM_INVALID_CAPTAIN;
     }
+    
     if (team->viceCaptain && !is_player_in_team(team, team->viceCaptain)) {
         snprintf(error_detail, 256, "Vice-captain is not a declared player: %s", team->viceCaptain);
         return TEAM_INVALID_VICECAPTAIN;
     }
+    
     if (team->coach && !is_string(team->coach)) {
         snprintf(error_detail, 256, "Coach must be a string.");
         return TEAM_INVALID_COACH;
     }
+    
     if (team->strategy && !is_string(team->strategy)) {
         snprintf(error_detail, 256, "Strategy must be a string.");
         return TEAM_INVALID_STRATEGY;
     }
+    
     strcpy(error_detail, "Valid team");
     return TEAM_OK;
 }
 
+// this function checks if: both teams exist, a team does not play against itself, the date format is valid, the result format is valid. 
 MatchValidationError validate_match(Match *match, SymbolTable *table, char *error_detail) {
     SymbolNode* homeNode = lookup_symbol(table, match->homeTeam, "TEAM");
     SymbolNode* awayNode = lookup_symbol(table, match->awayTeam, "TEAM");
+    
     if (!homeNode) {
         snprintf(error_detail, 256, "Home team not known: %s", match->homeTeam);
         return MATCH_UNKNOWN_TEAM;
@@ -512,22 +549,28 @@ MatchValidationError validate_match(Match *match, SymbolTable *table, char *erro
         snprintf(error_detail, 256, "Away team not known: %s", match->awayTeam);
         return MATCH_UNKNOWN_TEAM;
     }
+    
     if (strcmp(match->homeTeam, match->awayTeam) == 0) {
         snprintf(error_detail, 256, "A team cannot play against himself %s", match->homeTeam);
         return MATCH_SAME_TEAM;
     }
+    
     if (match->date && !is_valid_date(match->date)) {
         snprintf(error_detail, 256, "Date format invalid (should be YYYY-MM-DD): %s", match->date);
         return MATCH_INVALID_DATE;
     }
+    
     if (match->result && !is_valid_result(match->result)) {
         snprintf(error_detail, 256, "Result format invalid (should be X-Y and both non-negative): %s", match->result);
         return MATCH_INVALID_RESULT;
     }
+    
+    // check that all scorers are actually players from one of the teams
     int home_scorers = 0, away_scorers = 0;
     if (match->scorers[0] != NULL) {
         for (int i = 0; match->scorers[i] != NULL && i < MAX_SCORERS; i++) {
             int found = 0;
+            
             Team* homeTeamPtr = homeNode->value.teamPtr;
             for (int j = 0; j < homeTeamPtr->numPlayers; j++) {
                 if (strcmp(homeTeamPtr->players[j].name, match->scorers[i]) == 0) {
@@ -536,6 +579,7 @@ MatchValidationError validate_match(Match *match, SymbolTable *table, char *erro
                     break;
                 }
             }
+            
             if (!found) {
                 Team* awayTeamPtr = awayNode->value.teamPtr;
                 for (int j = 0; j < awayTeamPtr->numPlayers; j++) {
@@ -546,16 +590,17 @@ MatchValidationError validate_match(Match *match, SymbolTable *table, char *erro
                     }
                 }
             }
+            
             if (!found) {
                 snprintf(error_detail, 256, "Goaler is not a known player: %s", match->scorers[i]);
                 return MATCH_UNKNOWN_SCORER;
             }
         }
     }
+    
     strcpy(error_detail, "Valid match");
     return MATCH_OK;
 }
-
 
 
 int hasPlayer(Team* team, const char* name) {
@@ -593,7 +638,6 @@ int hasStrategy(Team* team, const char* strategy) {
     return strcmp(team->strategy, strategy) == 0;
 }
 
-// -------- MATCH "HAS" FUNCTIONS --------
 
 int hasStadium(Match* match, const char* name) {
     if (!match || !name || !match->stadium) return 0;
@@ -615,7 +659,7 @@ int hasWeather(Match* match, const char* weather) {
     return strcmp(match->weather, weather) == 0;
 }
 
-int hasResult(Match* match, const char* result) {
+    int hasResult(Match* match, const char* result) {
     if (!match || !result || !match->result) return 0;
     return strcmp(match->result, result) == 0;
 }
@@ -633,23 +677,26 @@ int hasScorer(Match* match, const char* scorer) {
     return 0;
 }
 
+// loads all the team and match data to a json file
 void write_json_summary_to_file(SymbolTable* table, const char* filename) {
     FILE* f = fopen(filename, "w");
     if (!f) {
-        fprintf(stderr, "Errore nell'apertura del file %s\n", filename);
+        fprintf(stderr, "error opening file %s\n", filename);
         return;
     }
-
+    
     fprintf(f, "{\n");
-
-    // --- TEAMS ---
+    
+    // teams section
     fprintf(f, "  \"teams\": [\n");
     SymbolNode* current = table->head;
     int first_team = 1;
+    
     while (current) {
         if (strcmp(current->type, "TEAM") == 0) {
             Team* t = current->value.teamPtr;
             if (!first_team) fprintf(f, ",\n");
+            
             fprintf(f, "    {\n");
             fprintf(f, "      \"name\": \"%s\",\n", t->name);
             fprintf(f, "      \"coach\": \"%s\",\n", t->coach ? t->coach : "");
@@ -657,8 +704,8 @@ void write_json_summary_to_file(SymbolTable* table, const char* filename) {
             fprintf(f, "      \"viceCaptain\": \"%s\",\n", t->viceCaptain ? t->viceCaptain : "");
             fprintf(f, "      \"strategy\": \"%s\",\n", t->strategy ? t->strategy : "");
             fprintf(f, "      \"formation\": \"%d-%d-%d\",\n", t->formation.defence, t->formation.midfield, t->formation.attack);
-
-            // Giocatori
+            
+            // here all the players are written
             fprintf(f, "      \"players\": [\n");
             for (int i = 0; i < t->numPlayers; i++) {
                 fprintf(f, "        { \"name\": \"%s\", \"position\": \"%s\" }", t->players[i].name, t->players[i].position);
@@ -672,15 +719,17 @@ void write_json_summary_to_file(SymbolTable* table, const char* filename) {
         current = current->next;
     }
     fprintf(f, "\n  ],\n");
-
-    // --- MATCHES ---
+    
+    // matches section 
     fprintf(f, "  \"matches\": [\n");
     current = table->head;
     int first_match = 1;
+    
     while (current) {
         if (strcmp(current->type, "MATCH") == 0) {
             Match* m = current->value.matchPtr;
             if (!first_match) fprintf(f, ",\n");
+            
             fprintf(f, "    {\n");
             fprintf(f, "      \"name\": \"%s\",\n", current->name);
             fprintf(f, "      \"stadium\": \"%s\",\n", m->stadium ? m->stadium : "");
@@ -692,6 +741,8 @@ void write_json_summary_to_file(SymbolTable* table, const char* filename) {
             fprintf(f, "      \"result\": \"%s\",\n", m->result ? m->result : "");
             fprintf(f, "      \"referee\": \"%s\",\n", m->referee ? m->referee : "");
             fprintf(f, "      \"scorers\": [");
+
+            // here all the matches information are written
             for (int i = 0; i < MAX_SCORERS && m->scorers[i]; i++) {
                 if (i > 0) fprintf(f, ", ");
                 fprintf(f, "\"%s\"", m->scorers[i]);
@@ -703,7 +754,6 @@ void write_json_summary_to_file(SymbolTable* table, const char* filename) {
         current = current->next;
     }
     fprintf(f, "\n  ]\n");
-
     fprintf(f, "}\n");
     fclose(f);
 }
