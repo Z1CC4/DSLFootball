@@ -136,7 +136,6 @@ void set_result(SymbolTable* table, const char* match_name, const char* result);
 // --- SCORERS ---
 void start_scorer_list(SymbolTable* table, const char* match_name);
 void add_scorer(SymbolTable* table, const char* match_name, const char* scorer);
-void end_scorer_list(SymbolTable* table, const char* match_name);
 
 // --- VALIDATION ---
 TeamValidationError validate_team(Team* team, char* error_detail);
