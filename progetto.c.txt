@@ -399,9 +399,6 @@ void add_scorer(SymbolTable* table, const char* match_name, const char* scorer) 
     }
 }
 
-void end_scorer_list(SymbolTable* table, const char* match_name) {
-    // Intenzionalmente vuota!
-}
 
 // ----------------- VALIDATION LOGIC ----------------
 
