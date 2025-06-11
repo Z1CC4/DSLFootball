@@ -171,9 +171,7 @@ match_attribute:
             yyerror("Result must be in the format X-Y with both X and Y >= 0");
         set_result(&symbol_table, current_match_name, buf);
     }
-  | SCORERS EQUAL LSQUARE scorer_list RSQUARE SEMICOLON {
-        end_scorer_list(&symbol_table, current_match_name);
-    }
+  | SCORERS EQUAL LSQUARE scorer_list RSQUARE SEMICOLON 
   ;
 
 scorer_list:
