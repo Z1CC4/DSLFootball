@@ -2,7 +2,7 @@
 #define PROGETTO_H
 
 #define MAX_PLAYERS 11
-#define MAX_SCORERS 10
+#define MAX_SCORERS 22
 
 typedef struct {
     char* name;
