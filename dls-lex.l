@@ -7,10 +7,7 @@
 int TokenCont=0;
 %}
 
-digit    [0-9]
 letter   [a-zA-Z]
-digits   {digit}+
-id       {letter}({letter}|{digit})*
 
 %%
 
