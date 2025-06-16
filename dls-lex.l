@@ -7,8 +7,6 @@
 int TokenCont=0;
 %}
 
-letter   [a-zA-Z]
-
 %%
 
 [ \t\r\n]+               /* to eliminate new space and new line*/
