@@ -7,6 +7,11 @@
 int TokenCont=0;
 %}
 
+digit    [0-9]
+letter   [a-zA-Z]
+digits   {digit}+
+id       {letter}({letter}|{digit})*
+
 %%
 
 [ \t\r\n]+               /* to eliminate new space and new line*/
